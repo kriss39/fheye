@@ -213,9 +213,17 @@ export function HomePage() {
 
       <section className="terminal-section">
         <div className="section-head">
-          <h2>Also in your terminal and CI</h2>
-          <p>The same analysis runs from the command line. With --fail-on-public, a CI job fails as soon as a computed value is public, so a leak never reaches mainnet unnoticed.</p>
+          <h2>Also in your terminal, CI and apps</h2>
+          <p>
+            The same analysis runs from the command line, where --fail-on-public fails a CI job as soon as a computed value is public, and over a public JSON API that any site, bot or wallet can call.
+          </p>
         </div>
+        <p className="api-links">
+          <a href="api" target="_blank" rel="noreferrer">
+            API reference (JSON)
+          </a>
+          <span className="muted">/api/tx/&lt;hash&gt; · /api/handle/&lt;handle&gt; · /api/mainnet</span>
+        </p>
         <div className="terminal" aria-label="Example command line session">
           <div className="terminal-bar">
             <span />
@@ -234,6 +242,9 @@ export function HomePage() {
             {'\n'}
             <span className="t-prompt">$</span> echo $?{'\n'}
             <span className="t-red">1</span>
+            {'\n\n'}
+            <span className="t-prompt">$</span> curl {'https://fheye.vercel.app/api/tx/0x5fc6…62a3'}{'\n'}
+            <span className="t-dim">{'{ "verdict": { "kind": "exposed", "headline": "Looks encrypted, but anyone can work it out", … } }'}</span>
           </pre>
         </div>
       </section>

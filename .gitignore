@@ -24,3 +24,6 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# bundled Vercel functions (npm run build:api)
+api

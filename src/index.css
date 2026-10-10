@@ -2203,3 +2203,18 @@ button.copy:hover:not(:disabled) {
   animation: none;
   flex: none;
 }
+
+.api-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 0 0 12px;
+  font-size: 14px;
+}
+.api-links a {
+  font-weight: 600;
+}
+.api-links .muted {
+  font-family: var(--mono);
+  font-size: 12.5px;
+}

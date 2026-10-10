@@ -81,6 +81,25 @@ Stack: Vite, React, TypeScript, [viem](https://viem.sh). No backend.
 
 The `spike/` folder holds the scripts used to validate the approach against live networks (handle derivation on real events, RPC limits, ACL reads, mainnet status, leak recomputation against published decrypts). Run any of them with `npx tsx spike/<name>.ts`.
 
+## Public API
+
+Read-only JSON over HTTP, with open CORS and edge caching:
+
+| Endpoint | Returns |
+|---|---|
+| `GET /api/tx/<hash>[?chain=<key>]` | The plain-language verdict (`exposed`, `private` or `none`, with the sum and the advice) and every FHE task of the transaction. The network is found automatically unless `chain` is given. |
+| `GET /api/handle/<handle>[,<handle>…][?chain=<key>]` | Up to 20 decoded handles; with `chain`, whether anyone may decrypt each and any published result. |
+| `GET /api/mainnet` | Live state of both mainnet TaskManagers: intake, access list, allowlisted callers, task counts. |
+| `GET /api` | This list. |
+
+Bigints are decimal strings and handles are 32-byte hex. The functions live in `api-src/` and are bundled into `api/` by `npm run build:api` before a deploy.
+
+## Launch bot
+
+`fheye watch --state <file>` compares the mainnet TaskManagers with its last run and posts what changed (a contract allowed or removed, intake switched on or off, the access list opened, the first encrypted operations with FHEye's verdict) to `DISCORD_WEBHOOK_URL` and/or `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID`. The first run only records the state; `--dry-run` prints instead of posting.
+
+`.github/workflows/launch-watch.yml` runs it every 10 minutes once the repository variable `WATCH_ENABLED` is `true` and one of those secrets is set; until then the job is skipped.
+
 ## Command line
 
 The same analysis runs in a terminal or a CI job. It isn't published to npm; build it from a clone:

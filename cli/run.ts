@@ -4,6 +4,7 @@
 //   1  --fail-on-public and at least one computed value is public
 //   2  usage error, bad input or RPC failure
 
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { parseArgs, type ParseArgsConfig } from 'node:util'
 import { createPublicClient, http, isAddress, type Address, type Hash } from 'viem'
 import { getAcl, handleStatus, type HandleStatus } from '../src/acl/check'
@@ -11,6 +12,8 @@ import { CHAINS, chainById, type LensChain } from '../src/chains'
 import { makeClients } from '../src/client'
 import { decodeMany, type DecodedHandle } from '../src/handle/decode'
 import { PrunedHistoryError, TruncatedResponseError, type ScanProgress } from '../src/logs'
+import { explainTx } from '../src/leak/explain'
+import { deserializeHistory, scanHistory, serializeHistory } from '../src/mainnet/status'
 import { contractReport } from '../src/report/contract'
 import { findTxChain, loadTx, type LoadedTx } from '../src/tx/load'
 import { fmt } from '../src/ui/format'
@@ -19,6 +22,7 @@ import { styleFor, toJson } from './format'
 import { formatHandles, summarizeHandles } from './handle'
 import { formatStatus, loadStatus } from './status'
 import { formatTx, summarizeTx, txHasPublic } from './tx'
+import { launchMessages, post, sinksFrom, type WatchState } from './watch'
 
 export interface Out {
   write(s: string): unknown
@@ -47,6 +51,7 @@ Usage:
   fheye contract <address> --chain <key> [--hours <n>] [--rpc <url>] [--json] [--fail-on-public]
   fheye handle <handle...> [--chain <key>] [--rpc <url>] [--json]
   fheye status [--chain ethereum|arbitrum] [--rpc <url>] [--json]
+  fheye watch --state <file> [--chain ethereum|arbitrum] [--rpc <url>] [--dry-run]
 
 Commands:
   tx        FHE tasks of one transaction and which computed values are public.
@@ -55,6 +60,9 @@ Commands:
   handle    Decode handles offline; with --chain, also ask whether anyone can decrypt them
             and whether a decrypt result was published.
   status    Mainnet TaskManager flags, access list and task counts (both mainnets by default).
+  watch     Launch bot: post what changed on the mainnet TaskManagers since the last run to
+            DISCORD_WEBHOOK_URL and/or TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID. The first run
+            only records the state; --dry-run prints messages instead of posting.
 
 Options:
   --chain <key>       ${CHAINS.map((c) => c.key).join(', ')}
@@ -83,10 +91,11 @@ const OPTIONS = {
   contract: { ...COMMON, hours: { type: 'string' }, 'fail-on-public': { type: 'boolean' } },
   handle: COMMON,
   status: COMMON,
+  watch: { ...COMMON, state: { type: 'string' }, 'dry-run': { type: 'boolean' } },
 } satisfies Record<string, ParseArgsConfig['options']>
 
 type Command = keyof typeof OPTIONS
-type Values = { chain?: string; rpc?: string; json?: boolean; help?: boolean; hours?: string; 'fail-on-public'?: boolean }
+type Values = { chain?: string; rpc?: string; json?: boolean; help?: boolean; hours?: string; 'fail-on-public'?: boolean; state?: string; 'dry-run'?: boolean }
 
 function chainArg(key: string | undefined): LensChain | undefined {
   if (key === undefined) return undefined
@@ -253,6 +262,40 @@ async function dispatch(command: Command, values: Values, positionals: string[],
       )
       p.clear()
       print(values.json ? toJson({ chains: results }) : results.map((s) => formatStatus(s, st)).join('\n\n'))
+      return 0
+    }
+
+    case 'watch': {
+      if (!values.state) throw new UsageError('watch needs --state <file> to remember what it has seen.')
+      if (chain && !chain.mainnet) throw new UsageError('watch covers the mainnet TaskManagers: --chain ethereum or --chain arbitrum.')
+      if (rpc && !chain) throw new UsageError('--rpc needs --chain, since watch reads both mainnets by default.')
+      const file = values.state
+      const state: WatchState = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : { version: 1, chains: {} }
+      const messages: string[] = []
+      for (const c of chain ? [chain] : CHAINS.filter((x) => x.mainnet)) {
+        const { logClient } = makeClients(c, rpc)
+        const saved = state.chains[c.id]
+        const prior = saved ? deserializeHistory(saved) : undefined
+        p.update(`Reading ${c.name}…`)
+        const next = await scanHistory(logClient, c, { prior })
+        if (prior) {
+          let verdict: string | undefined
+          const first = Object.keys(next.tasksByTx)[0]
+          if (prior.taskCount === 0 && first) {
+            const t = await deps.loadTx(c, first as Hash, rpc).catch(() => null)
+            if (t) verdict = explainTx(t.graph, t.leaks, t.status).detail
+          }
+          messages.push(...launchMessages(c, prior, next, verdict))
+        }
+        state.chains[c.id] = serializeHistory(next)
+      }
+      p.clear()
+      const sinks = sinksFrom(io.env)
+      const quiet = values['dry-run'] || (!sinks.discord && !sinks.telegram)
+      if (messages.length && !quiet) await post(sinks, messages)
+      writeFileSync(file, JSON.stringify(state))
+      if (!messages.length) print('Nothing new on the mainnet TaskManagers.')
+      else print(`${quiet ? 'Would post' : 'Posted'}:\n\n${messages.join('\n\n')}`)
       return 0
     }
   }
