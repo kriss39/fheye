@@ -1,6 +1,6 @@
 # FHE Lens
 
-A browser-only inspector for [Fhenix CoFHE](https://cofhe-docs.fhenix.zone). Paste a transaction and see every FHE task it created, how encrypted values flow between them, who may use each handle, and which values look encrypted but can be computed by anyone.
+A client-side inspector for [Fhenix CoFHE](https://cofhe-docs.fhenix.zone), in the browser or on the [command line](#command-line). Paste a transaction and see every FHE task it created, how encrypted values flow between them, who may use each handle, and which values look encrypted but can be computed by anyone.
 
 > Unofficial. Not affiliated with Fhenix. FHE Lens only reads public chain data; it never sends transactions or asks for a wallet.
 
@@ -78,6 +78,39 @@ npm run build      # static site in dist/
 Stack: Vite, React, TypeScript, [viem](https://viem.sh). No backend.
 
 The `spike/` folder holds the scripts used to validate the approach against live networks (handle derivation on real events, RPC limits, ACL reads, mainnet status, leak recomputation against published decrypts). Run any of them with `npx tsx spike/<name>.ts`.
+
+## Command line
+
+The same analysis runs in a terminal or a CI job. It isn't published to npm; build it from a clone:
+
+```sh
+npm run build:cli                  # single file: dist-cli/fhe-lens.mjs, runs with plain node
+node dist-cli/fhe-lens.mjs tx 0x7d8e313f60bff6680df9d5db638f265fa1d9bbf5dee34dc4eede8cb0721753bb
+node dist-cli/fhe-lens.mjs contract 0x87a3effb84cbe1e4cab6ab430139ec41d156d55a --chain sepolia --hours 6
+node dist-cli/fhe-lens.mjs handle 0x76c4c176dc23fd580abc40e3e30f30ee9c466e4b6adc6fbdc7c45425f1a50500 --chain sepolia
+node dist-cli/fhe-lens.mjs status  # mainnet TaskManagers
+```
+
+During development, `npx tsx cli/index.ts …` (or `npm run cli -- …`) runs the sources directly.
+
+- `tx <hash>` lists every task with its inputs (`#n` is the task that produced a handle) and marks values that look encrypted but are public. The network is found automatically unless `--chain` is given.
+- `contract <address> --chain <key>` is the contract privacy report over the last `--hours` (default 1).
+- `handle <handle…>` decodes handles offline; with `--chain` it also asks whether anyone can decrypt them and whether a result was published.
+- `status` shows intake, access list, roles and task counts on Ethereum and Arbitrum One.
+
+Every command takes `--rpc <url>` to replace the public endpoints and `--json` to print one JSON document instead of text (bigints as decimal strings, handles as 32-byte hex). Networks: `ethereum`, `arbitrum`, `sepolia`, `arbitrum-sepolia`, `base-sepolia`.
+
+Exit codes: `0` done; `1` with `--fail-on-public` (`tx`, `contract`) when at least one computed value is public; `2` usage error, bad input or RPC failure.
+
+A CI step that fails when a contract's recent transactions leak computed values:
+
+```yaml
+- name: Check for public values
+  run: |
+    git clone --depth 1 https://github.com/kriss39/fhe-lens /tmp/fhe-lens
+    cd /tmp/fhe-lens && npm ci && npm run build:cli
+    node dist-cli/fhe-lens.mjs contract ${{ vars.CONTRACT }} --chain sepolia --hours 6 --fail-on-public
+```
 
 ## License
 

@@ -3,9 +3,14 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "bin": {
+    "fhe-lens": "dist-cli/fhe-lens.mjs"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:cli": "vite build --config vite.cli.config.ts",
+    "cli": "tsx cli/index.ts",
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",

@@ -6,6 +6,7 @@ import type { Hash } from 'viem'
 import { CHAINS, type LensChain } from '../chains'
 import { lookupTrivial } from '../leak/dictionary'
 import type { Known } from '../leak/evaluate'
+import { ASSUMPTION_TEXT } from '../leak/ops'
 import { customRpc } from '../settings'
 import type { HandleStatus } from '../acl/check'
 import { findTxChain, loadTx, type LoadedTx } from '../tx/load'
@@ -19,12 +20,6 @@ import { fmt, pct, txUrl } from '../ui/format'
 import { useAsync } from '../ui/useAsync'
 
 const isTxHash = (s: string) => /^0x[0-9a-fA-F]{64}$/.test(s)
-
-const ASSUMPTION_TEXT: Record<string, string> = {
-  'div-by-zero': 'division by zero returns the type maximum',
-  'rem-by-zero': 'remainder by zero returns the numerator',
-  'shift-mod-bits': 'shift amounts wrap modulo the bit width',
-}
 
 export function TxPage({ params }: { params: string[] }) {
   const [chainKey, hash] = params.length === 2 ? params : [undefined, params[0]]

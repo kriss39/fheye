@@ -12,6 +12,13 @@ import { EBOOL, TYPE_BITS, isFheTypeId } from '../handle/decode'
 
 export type Assumption = 'div-by-zero' | 'rem-by-zero' | 'shift-mod-bits'
 
+/** How each assumption reads in the UI and the CLI. */
+export const ASSUMPTION_TEXT: Record<Assumption, string> = {
+  'div-by-zero': 'division by zero returns the type maximum',
+  'rem-by-zero': 'remainder by zero returns the numerator',
+  'shift-mod-bits': 'shift amounts wrap modulo the bit width',
+}
+
 export interface EvalResult {
   value: bigint
   assumptions: Assumption[]

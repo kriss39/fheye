@@ -18,3 +18,5 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+      - run: npm run build:cli
+      - run: node dist-cli/fhe-lens.mjs handle 0x2d720d224cd538e53234ab8615c635e5d888f12a414fa1f67075fe6164b18500

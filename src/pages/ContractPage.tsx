@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react'
 import { isAddress, type Address } from 'viem'
 import { CHAINS, type LensChain } from '../chains'
+import { ASSUMPTION_TEXT } from '../leak/ops'
 import { contractReport, type ReportPhase } from '../report/contract'
 import { privacyGrade } from '../report/grade'
 import { customRpc } from '../settings'
@@ -17,12 +18,6 @@ const WINDOWS: Array<[string, number]> = [
   ['6 hours', 21600],
   ['24 hours', 86400],
 ]
-
-const ASSUMPTION_TEXT: Record<string, string> = {
-  'div-by-zero': 'division by zero returns the type maximum',
-  'rem-by-zero': 'remainder by zero returns the numerator',
-  'shift-mod-bits': 'shift amounts wrap modulo the bit width',
-}
 
 export function ContractPage({ params }: { params: string[] }) {
   const [chainKey, address, win] = params
