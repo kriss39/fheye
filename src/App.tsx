@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { CHAINS } from './chains'
+import { ContractPage } from './pages/ContractPage'
 import { HandlesPage } from './pages/HandlesPage'
 import { StatusPage } from './pages/StatusPage'
 import { TxPage } from './pages/TxPage'
@@ -19,6 +20,7 @@ function useRoute(): string[] {
 const TABS = [
   ['status', 'Mainnet status'],
   ['tx', 'Transaction'],
+  ['contract', 'Contract'],
   ['handles', 'Handles'],
 ] as const
 
@@ -40,7 +42,17 @@ export default function App() {
           ))}
         </nav>
       </header>
-      <main>{page === 'tx' ? <TxPage params={params} /> : page === 'handles' ? <HandlesPage key={params.join('/')} params={params} /> : <StatusPage />}</main>
+      <main>
+        {page === 'tx' ? (
+          <TxPage params={params} />
+        ) : page === 'contract' ? (
+          <ContractPage params={params} />
+        ) : page === 'handles' ? (
+          <HandlesPage key={params.join('/')} params={params} />
+        ) : (
+          <StatusPage />
+        )}
+      </main>
       <footer className="stack tight">
         <Settings />
         <span>

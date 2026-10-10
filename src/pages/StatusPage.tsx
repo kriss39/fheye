@@ -336,7 +336,10 @@ function ActivityCard() {
                       {a.contracts.slice(0, 8).map((c) => (
                         <tr key={c.address}>
                           <td>
-                            <Addr chain={chain} address={c.address} />
+                            <Addr chain={chain} address={c.address} />{' '}
+                            <a className="small" href={`#/contract/${chain.key}/${c.address}/3600`}>
+                              report
+                            </a>
                           </td>
                           <td className="num">{fmt(c.tasks)}</td>
                           <td className="num">{fmt(c.txs)}</td>
