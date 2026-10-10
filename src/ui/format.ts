@@ -19,7 +19,7 @@ export function errorMessage(e: unknown): string {
   if (e instanceof TruncatedResponseError) return `${e.message} ${RPC_HINT}`
   const any = e as { shortMessage?: string; details?: string; message?: string; name?: string }
   const text = any.details || any.shortMessage || any.message || String(e)
-  if (/rate limit|too many requests|429/i.test(text)) return `The public RPC is rate-limiting requests. Wait a few seconds and retry. ${RPC_HINT}`
+  if (/rate limit|too many requests|\b429\b/i.test(text)) return `The public RPC is rate-limiting requests. Wait a few seconds and retry. ${RPC_HINT}`
   if (any.name === 'TransactionReceiptNotFoundError' || /could not be found/i.test(text)) return 'This transaction was not found on the selected network.'
   if (/failed to fetch|fetch failed|network|timeout|timed out/i.test(text)) return `Could not reach the RPC (${text.slice(0, 120)}). ${RPC_HINT}`
   return text
