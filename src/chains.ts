@@ -1,4 +1,4 @@
-// Networks FHE Lens can read. TaskManager addresses are resolved through the CoFHE address
+// Networks FHEye can read. TaskManager addresses are resolved through the CoFHE address
 // book at runtime; the ones here are fallbacks and a sanity check.
 //
 // Default endpoints were picked by probing keyless public RPCs (2026-10-10) for browser CORS,

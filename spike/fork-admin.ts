@@ -1,4 +1,4 @@
-// Prints the TaskManager admin events FHE Lens collects on a chain, optionally through another RPC:
+// Prints the TaskManager admin events FHEye collects on a chain, optionally through another RPC:
 // npx tsx spike/fork-admin.ts <chainId> [rpcUrl]
 import { chainById } from '../src/chains'
 import { makeClients } from '../src/client'

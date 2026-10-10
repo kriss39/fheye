@@ -1,4 +1,4 @@
-// `fhe-lens handle`: offline decode of handles, optionally with their on-chain status.
+// `fheye handle`: offline decode of handles, optionally with their on-chain status.
 
 import type { HandleStatus } from '../src/acl/check'
 import type { DecodedHandle } from '../src/handle/decode'

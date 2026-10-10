@@ -1,4 +1,4 @@
-/* FHE Lens brand: lens violet for the tool, amber for anything exposed, teal for "nothing found" */
+/* FHEye brand: lens violet for the tool, amber for anything exposed, teal for "nothing found" */
 :root {
   --bg: #f5f6fb;
   --surface: #ffffff;
@@ -152,6 +152,10 @@ h3 {
 }
 .brand:hover {
   text-decoration: none;
+}
+.brand em {
+  font-style: normal;
+  color: var(--exposed);
 }
 .brand small {
   color: var(--on-ink-2);

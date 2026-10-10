@@ -25,19 +25,20 @@ const html = `<!doctype html><html><head><meta charset="utf-8"><style>
   .wrap { display: flex; flex-direction: column; height: 100%; padding: 64px 72px; }
   .brand { display: flex; align-items: center; gap: 16px; font-family: Display; font-weight: 700; font-size: 34px; letter-spacing: -0.02em; }
   .brand svg { width: 56px; height: 56px; }
+  .brand em { font-style: normal; color: #f59e0b; }
   .brand small { font-family: Text; font-weight: 450; font-size: 20px; color: #a9aed6; letter-spacing: 0; margin-left: 4px; }
   h1 { font-family: Display; font-size: 76px; line-height: 1.02; letter-spacing: -0.035em; margin: 44px 0 0; font-weight: 700; }
   h1 em { font-style: normal; color: #f59e0b; }
   .row { display: flex; align-items: center; gap: 14px; margin-top: auto; }
   .chip { display: flex; flex-direction: column; gap: 4px; padding: 14px 18px; border-radius: 16px; border: 2.5px dashed #f59e0b; background: rgb(255 255 255 / 5%); }
   .chip b { display: flex; align-items: center; gap: 10px; font-family: Display; font-size: 34px; font-weight: 700; }
-  .chip span { font-size: 16px; color: #a9aed6; }
+  .chip span { font-size: 16px; color: #a9aed6; white-space: nowrap; }
   .chip.result { border-style: solid; background: rgb(245 158 11 / 16%); box-shadow: 0 0 0 8px rgb(245 158 11 / 12%); }
   .op { font-family: Display; font-size: 40px; color: #a9aed6; font-weight: 600; }
   .note { margin-left: 18px; font-size: 22px; line-height: 1.35; color: #eef0ff; max-width: 300px; }
   .note b { color: #f59e0b; }
 </style></head><body><div class="wrap">
-  <div class="brand">${logo}FHE Lens<small>CoFHE inspector · unofficial</small></div>
+  <div class="brand">${logo}<span>FH<em>Eye</em></span><small>See what encryption doesn't hide · unofficial</small></div>
   <h1>Encrypted isn't<br>always <em>private.</em></h1>
   <div class="row">
     ${chip('0', 'plain number')}<span class="op">+</span>${chip('5,000,000', 'plain number')}<span class="op">=</span>${chip('5,000,000', 'new balance, encrypted', true)}

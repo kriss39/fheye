@@ -1,10 +1,10 @@
 {
-  "name": "fhe-lens",
+  "name": "fheye",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "bin": {
-    "fhe-lens": "dist-cli/fhe-lens.mjs"
+    "fheye": "dist-cli/fheye.mjs"
   },
   "scripts": {
     "dev": "vite",

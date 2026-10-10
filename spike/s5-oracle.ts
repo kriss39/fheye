@@ -1,7 +1,7 @@
 // S5+: checks derived values against the real FHE engine. For handles that are both marked
-// decryptable by anyone (globalAllowed) and already known to FHE Lens (trivial constants or
+// decryptable by anyone (globalAllowed) and already known to FHEye (trivial constants or
 // derived values), ask the threshold network to decrypt them and verify the signature against the
-// TaskManager's decryptResultSigner. Handles whose value FHE Lens can't derive are never decrypted.
+// TaskManager's decryptResultSigner. Handles whose value FHEye can't derive are never decrypted.
 import { chainById } from '../src/chains'
 import { makeClients } from '../src/client'
 import { toHex32 } from '../src/handle/decode'
@@ -53,4 +53,4 @@ for (const c of picked) {
     console.log(`error    ${chain.key} ${c.op} ${toHex32(c.handle).slice(0, 14)}… ${(e as Error).message.slice(0, 120)}`)
   }
 }
-console.log(`\nengine agrees with FHE Lens on ${match}/${picked.length}; signatures valid ${verified}/${picked.length}`)
+console.log(`\nengine agrees with FHEye on ${match}/${picked.length}; signatures valid ${verified}/${picked.length}`)

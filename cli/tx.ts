@@ -1,4 +1,4 @@
-// `fhe-lens tx`: one transaction's tasks and what they make public, as plain data (for --json)
+// `fheye tx`: one transaction's tasks and what they make public, as plain data (for --json)
 // and as text. Wording follows the web transaction view.
 
 import type { Address, Hash } from 'viem'
@@ -212,11 +212,11 @@ export function formatTx(r: TxReport, st: Style = plain): string {
   }
 
   if (r.mismatches.length) {
-    out.push('', st.danger(st.bold("A decrypt result published on-chain contradicts FHE Lens' recomputation.")))
+    out.push('', st.danger(st.bold("A decrypt result published on-chain contradicts FHEye's recomputation.")))
     out.push(
       r.refuted.length
-        ? `CoFHE does not behave as assumed here: ${r.refuted.map((a) => ASSUMPTION_TEXT[a]).join('; ')}. FHE Lens uses the on-chain value and ignores every value that relied on this assumption.`
-        : 'FHE Lens uses the on-chain value for that handle. Please report this transaction; it points to a gap in the op model.',
+        ? `CoFHE does not behave as assumed here: ${r.refuted.map((a) => ASSUMPTION_TEXT[a]).join('; ')}. FHEye uses the on-chain value and ignores every value that relied on this assumption.`
+        : 'FHEye uses the on-chain value for that handle. Please report this transaction; it points to a gap in the op model.',
     )
   }
   return out.join('\n')

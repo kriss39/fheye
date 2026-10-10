@@ -63,7 +63,7 @@ try {
       const verdict = p.getByLabel('Verdict')
       await verdict.getByRole('button', { name: 'Check it with the CoFHE network' }).click()
       await verdict.getByText('The CoFHE network says').waitFor()
-      await verdict.getByText('matches FHE Lens').waitFor()
+      await verdict.getByText('matches FHEye').waitFor()
     },
     page,
   )
@@ -73,7 +73,7 @@ try {
     async (p) => {
       const row = p.locator('#task-1')
       await row.getByRole('button', { name: 'decrypt via network' }).click()
-      await row.getByText('matches FHE Lens').waitFor()
+      await row.getByText('matches FHEye').waitFor()
       await row.getByText('signed by the decrypt signer').waitFor()
     },
     page,

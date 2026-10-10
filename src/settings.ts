@@ -24,7 +24,7 @@ export function writeStorage(key: string, value: string | null) {
   listeners.forEach((l) => l())
 }
 
-const rpcKey = (chainId: number) => `fhelens:rpc:${chainId}`
+const rpcKey = (chainId: number) => `fheye:rpc:${chainId}`
 
 export function customRpc(chain: LensChain): string | undefined {
   return readStorage(rpcKey(chain.id)) || undefined

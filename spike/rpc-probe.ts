@@ -1,4 +1,4 @@
-// Probes public RPCs for what FHE Lens needs: CORS for browser use, log history depth
+// Probes public RPCs for what FHEye needs: CORS for browser use, log history depth
 // (pruning), max getLogs block range, and old receipts.
 const ORIGIN = 'http://localhost:5173'
 const TASK_CREATED = '0xe9de54a3e7ddf0c48cc6e1134185300d5a71acbf2d8c21fcdefa9d9dd9e20ac1'

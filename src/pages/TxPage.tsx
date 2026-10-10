@@ -148,13 +148,13 @@ function TxDetails({ t }: { t: LoadedTx }) {
 
       {leaks.checks.some((c) => !c.match) && (
         <section className="notice danger">
-          <b>A decrypt result published on-chain contradicts FHE Lens' recomputation.</b>
+          <b>A decrypt result published on-chain contradicts FHEye's recomputation.</b>
           {leaks.refuted.length > 0 ? (
             <p>
-              CoFHE does not behave as assumed here: {leaks.refuted.map((a) => ASSUMPTION_TEXT[a]).join('; ')}. FHE Lens uses the on-chain value and ignores every value that relied on this assumption.
+              CoFHE does not behave as assumed here: {leaks.refuted.map((a) => ASSUMPTION_TEXT[a]).join('; ')}. FHEye uses the on-chain value and ignores every value that relied on this assumption.
             </p>
           ) : (
-            <p>FHE Lens uses the on-chain value for that handle. Please report this transaction; it points to a gap in the op model.</p>
+            <p>FHEye uses the on-chain value for that handle. Please report this transaction; it points to a gap in the op model.</p>
           )}
         </section>
       )}

@@ -1,4 +1,4 @@
-// Landing page: what FHE Lens finds, in one picture, and where to start.
+// Landing page: what FHEye finds, in one picture, and where to start.
 
 import { useState, type FormEvent } from 'react'
 import { ExampleTiles } from '../ui/ExampleTiles'
@@ -22,11 +22,11 @@ export function Hero() {
     <section className="hero">
       <div className="hero-inner">
         <div>
-          <span className="eyebrow">An inspector for Fhenix CoFHE · unofficial</span>
+          <span className="eyebrow">See what encryption doesn't hide · for Fhenix CoFHE · unofficial</span>
           <h1>
             Encrypted isn't always <em>private.</em>
           </h1>
-          <p className="sub">FHE Lens reads a CoFHE transaction and shows which encrypted values anyone can work out from public data, and why. No wallet, nothing to install.</p>
+          <p className="sub">FHEye reads a CoFHE transaction and shows which encrypted values anyone can work out from public data, and why. No wallet, nothing to install.</p>
           <form className="hero-search" onSubmit={submit}>
             <SearchIcon size={20} />
             <input
@@ -68,7 +68,7 @@ export function Hero() {
 
 const STEPS: Array<[string, string]> = [
   ['Paste a transaction', 'Any transaction that used CoFHE on Ethereum, Arbitrum or Base testnets, and on mainnet once it opens.'],
-  ['See every encrypted value', 'FHE Lens decodes each encrypted operation and draws where every value comes from.'],
+  ['See every encrypted value', 'FHEye decodes each encrypted operation and draws where every value comes from.'],
   ['Find what isn’t secret', 'Values built only from plain numbers or public decryptions are flagged, with the math behind them and a fix.'],
 ]
 

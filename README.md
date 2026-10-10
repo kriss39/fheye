@@ -1,14 +1,14 @@
-# FHE Lens
+# FHEye
 
 A client-side inspector for [Fhenix CoFHE](https://cofhe-docs.fhenix.zone), in the browser or on the [command line](#command-line). Paste a transaction and see every FHE task it created, how encrypted values flow between them, who may use each handle, and which values look encrypted but can be computed by anyone.
 
-> Unofficial. Not affiliated with Fhenix. FHE Lens only reads public chain data; it never sends transactions or asks for a wallet.
+> Unofficial. Not affiliated with Fhenix. FHEye only reads public chain data; it never sends transactions or asks for a wallet.
 
-![FHE Lens: encrypted isn't always private](docs/home.png)
+![FHEye: encrypted isn't always private](docs/home.png)
 
 ## What it does
 
-**Transaction view.** Give it a tx hash (the network is found automatically). The answer comes first, in plain language: which value looks encrypted but isn't, the sum that gives it away (`0 + 5,000,000 = 5,000,000`), what a developer could do about it and, when the value may be decrypted by anyone, a button that checks it against the CoFHE network. Under that, FHE Lens decodes every `TaskCreated`, `InputVerified` and `DecryptionResult` event the CoFHE TaskManager emitted and shows:
+**Transaction view.** Give it a tx hash (the network is found automatically). The answer comes first, in plain language: which value looks encrypted but isn't, the sum that gives it away (`0 + 5,000,000 = 5,000,000`), what a developer could do about it and, when the value may be decrypted by anyone, a button that checks it against the CoFHE network. Under that, FHEye decodes every `TaskCreated`, `InputVerified` and `DecryptionResult` event the CoFHE TaskManager emitted and shows:
 
 - the task graph, drawn as a layered diagram and listed in execution order, with each input linked to the task that produced it; selecting a task lights up everything it is computed from and spells out the formula;
 - each output handle's type, security zone and trivial bit;
@@ -18,7 +18,7 @@ A client-side inspector for [Fhenix CoFHE](https://cofhe-docs.fhenix.zone), in t
 
 ![Transaction view: the verdict for a token mint whose new balance anyone can compute](docs/tx.png)
 
-**Contract privacy report.** Give it a contract address: FHE Lens finds the contract's latest FHE transactions on a network, analyses each one and adds up how many computed values are provably public, how many plaintext constants it encrypts, and how many of its handles anyone may decrypt. Handles are content-addressed, so each value is followed back through earlier transactions in the window: a balance that started from a trivially encrypted zero is still flagged in later transactions that only add to it. The report grades the share of public values (A only when nothing is provably public) and its link can be shared.
+**Contract privacy report.** Give it a contract address: FHEye finds the contract's latest FHE transactions on a network, analyses each one and adds up how many computed values are provably public, how many plaintext constants it encrypts, and how many of its handles anyone may decrypt. Handles are content-addressed, so each value is followed back through earlier transactions in the window: a balance that started from a trivially encrypted zero is still flagged in later transactions that only add to it. The report grades the share of public values (A only when nothing is provably public) and its link can be shared.
 
 ![Contract privacy report: half of a busy Sepolia contract's computed values are public](docs/contract.png)
 
@@ -28,7 +28,7 @@ A client-side inspector for [Fhenix CoFHE](https://cofhe-docs.fhenix.zone), in t
 
 ## "Looks encrypted, but isn't"
 
-A ciphertext handle is only as private as the data it was computed from. FHE Lens marks a handle as public when its value can be recomputed from:
+A ciphertext handle is only as private as the data it was computed from. FHEye marks a handle as public when its value can be recomputed from:
 
 - **trivially encrypted constants**: `FHE.asEuint64(10000)` puts `10000` in the event data, and the handle carries a trivial bit;
 - **published decrypt results**, which anyone can read from the chain;
@@ -42,7 +42,7 @@ Values are recomputed with the semantics of [TFHE-rs](https://github.com/zama-ai
 | `rem(x, 0)` | `x` | TFHE-rs docs |
 | `shl/shr/rol/ror` by ≥ bit width | amount taken modulo the width | TFHE-rs ≤ 1.6; 1.7+ returns 0 for shifts on overshift |
 
-When a derived value can be checked against a decrypt result published on-chain, the UI shows whether they match. For handles marked decryptable by anyone (`allowGlobal`), you can also ask the CoFHE threshold network for the value: FHE Lens sends the same request as `@cofhe/sdk`'s `decryptForTx().withoutACP()` and checks the returned signature against the TaskManager's `decryptResultSigner`, so the value doesn't have to be trusted. If a published or network result ever contradicts FHE Lens, the chain wins and every value that relied on the same assumption is dropped.
+When a derived value can be checked against a decrypt result published on-chain, the UI shows whether they match. For handles marked decryptable by anyone (`allowGlobal`), you can also ask the CoFHE threshold network for the value: FHEye sends the same request as `@cofhe/sdk`'s `decryptForTx().withoutACP()` and checks the returned signature against the TaskManager's `decryptResultSigner`, so the value doesn't have to be trusted. If a published or network result ever contradicts FHEye, the chain wins and every value that relied on the same assumption is dropped.
 
 **What this does not tell you.** Nothing is said about values derived from encrypted user inputs or randomness, and side channels (gas, control flow, timing) are out of scope. A handle that isn't marked is not proven private; it just isn't provably public.
 
@@ -58,7 +58,7 @@ Both resolve through the CoFHE address book at `0xC0F4e00E531a2B086492Ae3DCC1515
 Defaults are keyless public RPCs picked for browser CORS and log history; you can set your own per network (stored only in your browser). Some notes from testing them:
 
 - Many public endpoints prune old logs or need a key for archive queries, so log scans use endpoints that keep full history.
-- Some endpoints silently truncate large `eth_getLogs` responses. FHE Lens never trusts a response above 5,000 logs and re-fetches the range in halves.
+- Some endpoints silently truncate large `eth_getLogs` responses. FHEye never trusts a response above 5,000 logs and re-fetches the range in halves.
 - Arbitrum's public RPC allows much wider block ranges for queries without topic filters, so mainnet history is fetched topic-less and decoded locally.
 
 ## Limits
@@ -86,11 +86,11 @@ The `spike/` folder holds the scripts used to validate the approach against live
 The same analysis runs in a terminal or a CI job. It isn't published to npm; build it from a clone:
 
 ```sh
-npm run build:cli                  # single file: dist-cli/fhe-lens.mjs, runs with plain node
-node dist-cli/fhe-lens.mjs tx 0x7d8e313f60bff6680df9d5db638f265fa1d9bbf5dee34dc4eede8cb0721753bb
-node dist-cli/fhe-lens.mjs contract 0x87a3effb84cbe1e4cab6ab430139ec41d156d55a --chain sepolia --hours 6
-node dist-cli/fhe-lens.mjs handle 0x76c4c176dc23fd580abc40e3e30f30ee9c466e4b6adc6fbdc7c45425f1a50500 --chain sepolia
-node dist-cli/fhe-lens.mjs status  # mainnet TaskManagers
+npm run build:cli                  # single file: dist-cli/fheye.mjs, runs with plain node
+node dist-cli/fheye.mjs tx 0x7d8e313f60bff6680df9d5db638f265fa1d9bbf5dee34dc4eede8cb0721753bb
+node dist-cli/fheye.mjs contract 0x87a3effb84cbe1e4cab6ab430139ec41d156d55a --chain sepolia --hours 6
+node dist-cli/fheye.mjs handle 0x76c4c176dc23fd580abc40e3e30f30ee9c466e4b6adc6fbdc7c45425f1a50500 --chain sepolia
+node dist-cli/fheye.mjs status  # mainnet TaskManagers
 ```
 
 During development, `npx tsx cli/index.ts …` (or `npm run cli -- …`) runs the sources directly.
@@ -109,9 +109,9 @@ A CI step that fails when a contract's recent transactions leak computed values:
 ```yaml
 - name: Check for public values
   run: |
-    git clone --depth 1 https://github.com/kriss39/fhe-lens /tmp/fhe-lens
-    cd /tmp/fhe-lens && npm ci && npm run build:cli
-    node dist-cli/fhe-lens.mjs contract ${{ vars.CONTRACT }} --chain sepolia --hours 6 --fail-on-public
+    git clone --depth 1 https://github.com/kriss39/fheye /tmp/fheye
+    cd /tmp/fheye && npm ci && npm run build:cli
+    node dist-cli/fheye.mjs contract ${{ vars.CONTRACT }} --chain sepolia --hours 6 --fail-on-public
 ```
 
 ## License

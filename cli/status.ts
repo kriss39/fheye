@@ -1,4 +1,4 @@
-// `fhe-lens status`: mainnet TaskManager flags, the access list rebuilt from events and checked
+// `fheye status`: mainnet TaskManager flags, the access list rebuilt from events and checked
 // against storage, and lifetime task counts. Same reads as the web status page, without its
 // localStorage cache, so every run scans the full history.
 

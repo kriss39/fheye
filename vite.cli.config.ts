@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 
 // The command line as one self-contained Node ESM file (viem bundled, node: built-ins left
-// external), runnable with plain `node dist-cli/fhe-lens.mjs` or through the package's bin.
+// external), runnable with plain `node dist-cli/fheye.mjs` or through the package's bin.
 export default defineConfig({
   publicDir: false,
   ssr: { noExternal: true, target: 'node' },
@@ -12,7 +12,7 @@ export default defineConfig({
     target: 'node22',
     minify: false,
     rolldownOptions: {
-      output: { entryFileNames: 'fhe-lens.mjs', banner: '#!/usr/bin/env node', codeSplitting: false },
+      output: { entryFileNames: 'fheye.mjs', banner: '#!/usr/bin/env node', codeSplitting: false },
     },
   },
 })

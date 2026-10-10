@@ -28,7 +28,7 @@ export function ContractPage({ params }: { params: string[] }) {
       <div>
         <h1 style={{ fontSize: 22 }}>Contract privacy report</h1>
         <p className="lede">
-          How private is a contract, really? FHE Lens reads its latest encrypted transactions and counts how many of its "encrypted" values anyone can work out from public data, then grades it. A high share usually means amounts or
+          How private is a contract, really? FHEye reads its latest encrypted transactions and counts how many of its "encrypted" values anyone can work out from public data, then grades it. A high share usually means amounts or
           balances are built from plain numbers.
         </p>
       </div>

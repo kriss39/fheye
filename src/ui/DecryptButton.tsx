@@ -1,5 +1,5 @@
 // "Ask the network" for a handle anyone may decrypt. User-initiated; the signature is checked
-// against the TaskManager's decrypt signer, and compared with FHE Lens' own value when it has one.
+// against the TaskManager's decrypt signer, and compared with FHEye's own value when it has one.
 
 import { useState } from 'react'
 import { publicDecrypt, type PublicDecryptResult } from '../acl/publicDecrypt'
@@ -21,7 +21,7 @@ export function DecryptButton({ chain, handle, expected, big = false }: { chain:
         <span>
           {big ? 'The CoFHE network says' : 'network:'} <span className="value">{big ? r.value.toLocaleString('en-US') : r.value.toString()}</span>{' '}
           <span style={{ color: r.verified ? 'var(--ok)' : 'var(--danger)' }}>{r.verified ? '✓ signed by the decrypt signer' : '✗ signature not from the decrypt signer'}</span>
-          {agrees !== null && <span style={{ color: agrees ? 'var(--ok)' : 'var(--danger)' }}>{agrees ? ' · matches FHE Lens' : ' · differs from FHE Lens'}</span>}
+          {agrees !== null && <span style={{ color: agrees ? 'var(--ok)' : 'var(--danger)' }}>{agrees ? ' · matches FHEye' : ' · differs from FHEye'}</span>}
         </span>
       </span>
     )
@@ -45,7 +45,7 @@ export function DecryptButton({ chain, handle, expected, big = false }: { chain:
         {big && <CheckIcon size={18} />}
         {state.busy ? 'asking the network…' : big ? 'Check it with the CoFHE network' : 'decrypt via network'}
       </button>
-      {big && !state.busy && <span className="muted small">Anyone may decrypt this value, so FHE Lens can ask the network itself and verify its signature.</span>}
+      {big && !state.busy && <span className="muted small">Anyone may decrypt this value, so FHEye can ask the network itself and verify its signature.</span>}
       {state.error && <span style={{ color: 'var(--danger)' }}> {state.error}</span>}
     </span>
   )

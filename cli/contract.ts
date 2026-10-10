@@ -1,4 +1,4 @@
-// `fhe-lens contract`: the contract privacy report as text. Wording follows the web report.
+// `fheye contract`: the contract privacy report as text. Wording follows the web report.
 
 import type { LensChain } from '../src/chains'
 import { ASSUMPTION_TEXT } from '../src/leak/ops'

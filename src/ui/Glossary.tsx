@@ -10,7 +10,7 @@ const TERMS: Array<{ term: ReactNode; text: ReactNode }> = [
         <span className="swatch public" /> public value
       </>
     ),
-    text: 'Looks encrypted, but anyone can recompute it from plaintext constants or published decrypt results. This is what FHE Lens is looking for.',
+    text: 'Looks encrypted, but anyone can recompute it from plaintext constants or published decrypt results. This is what FHEye is looking for.',
   },
   {
     term: (
@@ -30,13 +30,13 @@ const TERMS: Array<{ term: ReactNode; text: ReactNode }> = [
         <span className="swatch secret" /> encrypted
       </>
     ),
-    text: 'Depends on an encrypted user input, randomness or an unknown earlier value. FHE Lens can say nothing about it.',
+    text: 'Depends on an encrypted user input, randomness or an unknown earlier value. FHEye can say nothing about it.',
   },
   {
     term: <Pill tone="danger">anyone can decrypt</Pill>,
     text: (
       <>
-        The contract called <code>allowGlobal</code> on this handle, so anyone may ask the CoFHE network for its value. FHE Lens can do that for you and check the network's signature.
+        The contract called <code>allowGlobal</code> on this handle, so anyone may ask the CoFHE network for its value. FHEye can do that for you and check the network's signature.
       </>
     ),
   },

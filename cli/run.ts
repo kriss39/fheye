@@ -40,13 +40,13 @@ const defaultDeps: Deps = {
   loadTx: (chain, hash, rpc) => loadTx(chain, hash, makeClients(chain, rpc).client),
 }
 
-export const USAGE = `fhe-lens: command-line inspector for CoFHE (unofficial)
+export const USAGE = `fheye: command-line inspector for CoFHE (unofficial)
 
 Usage:
-  fhe-lens tx <hash> [--chain <key>] [--rpc <url>] [--json] [--fail-on-public]
-  fhe-lens contract <address> --chain <key> [--hours <n>] [--rpc <url>] [--json] [--fail-on-public]
-  fhe-lens handle <handle...> [--chain <key>] [--rpc <url>] [--json]
-  fhe-lens status [--chain ethereum|arbitrum] [--rpc <url>] [--json]
+  fheye tx <hash> [--chain <key>] [--rpc <url>] [--json] [--fail-on-public]
+  fheye contract <address> --chain <key> [--hours <n>] [--rpc <url>] [--json] [--fail-on-public]
+  fheye handle <handle...> [--chain <key>] [--rpc <url>] [--json]
+  fheye status [--chain ethereum|arbitrum] [--rpc <url>] [--json]
 
 Commands:
   tx        FHE tasks of one transaction and which computed values are public.
@@ -164,7 +164,7 @@ export async function run(argv: string[], io: Io, deps: Deps = defaultDeps): Pro
       io.stderr.write(`${e.message}\n\n${USAGE}`)
       return 2
     }
-    io.stderr.write(`fhe-lens: ${errorText(e)}\n`)
+    io.stderr.write(`fheye: ${errorText(e)}\n`)
     return 2
   } finally {
     p.clear()

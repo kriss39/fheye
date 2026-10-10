@@ -11,7 +11,7 @@ import { Addr, Bars, ErrorBox, Pill, Progress, Stat, TxLink } from '../ui/compon
 import { blockUrl, fmt, pct } from '../ui/format'
 import { useAsync } from '../ui/useAsync'
 
-const historyKey = (c: LensChain) => `fhelens:history:${c.id}:${c.taskManager.toLowerCase()}`
+const historyKey = (c: LensChain) => `fheye:history:${c.id}:${c.taskManager.toLowerCase()}`
 
 function MainnetCard({ chain }: { chain: LensChain }) {
   const { client, logClient } = useClients(chain)

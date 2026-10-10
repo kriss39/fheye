@@ -229,13 +229,13 @@ describe('run: exit codes and stdout', () => {
     const t = io()
     expect(await run(['tx', `0x${'ab'.repeat(32)}`, '--chain', 'sepolia', '--json'], t.io, offline)).toBe(2)
     expect(t.out()).toBe('')
-    expect(t.err()).toBe('fhe-lens: This transaction was not found on the selected network.\n')
+    expect(t.err()).toBe('fheye: This transaction was not found on the selected network.\n')
   })
 
   it('prints help to stdout with exit 0', async () => {
     const t = io()
     expect(await run(['--help'], t.io, offline)).toBe(0)
-    expect(t.out()).toMatch(/^fhe-lens: command-line inspector/)
+    expect(t.out()).toMatch(/^fheye: command-line inspector/)
     expect(await run(['tx', '-h'], io().io, offline)).toBe(0)
   })
 

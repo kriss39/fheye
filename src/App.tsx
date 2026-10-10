@@ -36,7 +36,10 @@ export default function App() {
         <div className="brandbar-inner">
           <a className="brand" href="#/">
             <img src={`${import.meta.env.BASE_URL}favicon.svg`} width={28} height={28} alt="" />
-            FHE Lens <small>CoFHE inspector</small>
+            <span>
+              FH<em>Eye</em>
+            </span>
+            <small>CoFHE inspector</small>
           </a>
           <nav className="tabs">
             {TABS.map(([key, label, Icon]) => (
@@ -66,7 +69,7 @@ export default function App() {
         <footer className="stack tight">
           <Settings />
           <span>
-            FHE Lens is unofficial and not affiliated with Fhenix. It runs entirely in your browser and only reads public chain data through the RPC endpoints below. Op semantics follow TFHE-rs, the library behind CoFHE's FHE engine.
+            FHEye is unofficial and not affiliated with Fhenix. It runs entirely in your browser and only reads public chain data through the RPC endpoints below. Op semantics follow TFHE-rs, the library behind CoFHE's FHE engine.
           </span>
         </footer>
       </div>

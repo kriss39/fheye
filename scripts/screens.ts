@@ -19,7 +19,7 @@ try {
   for (const scheme of (process.env.SCHEME ? [process.env.SCHEME] : ['light', 'dark']) as Array<'light' | 'dark'>) {
     const page = await browser.newPage({ viewport: { width: Number(process.env.WIDTH ?? 1280), height: 900 }, colorScheme: scheme })
     const rpcs = (process.env.CUSTOM_RPC ?? '').split(',').filter(Boolean).map((pair) => pair.split('=') as [string, string])
-    await page.addInitScript((pairs) => pairs.forEach(([id, url]) => localStorage.setItem(`fhelens:rpc:${id}`, url)), rpcs)
+    await page.addInitScript((pairs) => pairs.forEach(([id, url]) => localStorage.setItem(`fheye:rpc:${id}`, url)), rpcs)
     const errors: string[] = []
     page.on('console', (m) => m.type() === 'error' && errors.push(m.text().slice(0, 240)))
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))

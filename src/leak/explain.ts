@@ -71,7 +71,7 @@ export function explainTx(graph: TxGraph, leaks: LeakReport, status: Map<bigint,
       kind: 'private',
       headline: 'Nothing here can be worked out from public data',
       detail: 'No computed value in this transaction can be derived from public data alone.',
-      explanation: 'Every computed value depends on something encrypted: a user input, randomness, or an encrypted value from an earlier transaction. That does not prove the contract is private, only that FHE Lens found no shortcut in this transaction.',
+      explanation: 'Every computed value depends on something encrypted: a user input, randomness, or an encrypted value from an earlier transaction. That does not prove the contract is private, only that FHEye found no shortcut in this transaction.',
       notes,
     }
   }

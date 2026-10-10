@@ -225,7 +225,7 @@ function Why({ graph, known, rowOf, handle, onSelect, onClear }: { graph: TxGrap
         {k ? ` = ${short(k.value)}` : ''}
       </b>
       {isLeak(k) && (leaves.length ? <> · anyone can compute this from {leaves.join(', ')}</> : <> · this holds whatever the inputs are</>)}
-      {!k && task.op?.kind !== 'trivial' && <> · encrypted: it depends on something FHE Lens can't see</>}
+      {!k && task.op?.kind !== 'trivial' && <> · encrypted: it depends on something FHEye can't see</>}
       {task.op?.kind === 'trivial' && <> · the plaintext is in the event data</>}
       <span className="why-actions">
         <button className="sm" onClick={() => onSelect(row)}>
