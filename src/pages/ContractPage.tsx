@@ -76,7 +76,7 @@ function ReportForm({ chainKey, address, seconds }: { chainKey: string; address:
 
 function phaseText(p: ReportPhase | null): string {
   if (!p) return 'Starting…'
-  if (p.phase === 'scan') return `Scanning FHE tasks in the window (${fmt(p.logs)} so far)…`
+  if (p.phase === 'scan') return `Reading TaskManager events in the window (${fmt(p.logs)} so far)…`
   if (p.phase === 'match') return `Finding this contract's transactions (${fmt(p.done)} of ${fmt(p.total)} checked)…`
   return `Analysing transactions (${p.done} of ${p.total})…`
 }
@@ -130,6 +130,11 @@ function Report({ chain, address, seconds }: { chain: LensChain; address: Addres
           {fmt(r.analysed.length)} most recent of {fmt(r.matchedTxs)} transactions to this contract in blocks {fmt(r.fromBlock)}–{fmt(r.toBlock)}
           {r.checkedTxs < r.windowTxs ? ` (searched the ${fmt(r.checkedTxs)} newest of ${fmt(r.windowTxs)} FHE transactions)` : ''}.
         </span>
+        {t.publicViaEarlier > 0 && (
+          <span className="small">
+            {fmt(t.publicViaEarlier)} of the public values build on results of earlier transactions in this window, so the single-transaction view can't flag them.
+          </span>
+        )}
         {r.assumptions.length > 0 && <span className="small" style={{ color: 'var(--warn)' }}>Some public values assume: {r.assumptions.map((a) => ASSUMPTION_TEXT[a]).join('; ')}.</span>}
       </section>
 
@@ -166,6 +171,12 @@ function Report({ chain, address, seconds }: { chain: LensChain; address: Addres
                   <td className="num">{s.tasks}</td>
                   <td className="num">
                     {s.publicComputed} / {s.computed}
+                    {s.publicViaEarlier > 0 && (
+                      <span className="muted small" title="Public through values computed in earlier transactions">
+                        {' '}
+                        ({s.publicViaEarlier} via earlier txs)
+                      </span>
+                    )}
                   </td>
                   <td className="num">{s.trivial}</td>
                   <td className="num">{s.global}</td>
