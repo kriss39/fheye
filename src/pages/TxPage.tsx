@@ -12,6 +12,7 @@ import { findTxChain, loadTx, type LoadedTx } from '../tx/load'
 import type { Task } from '../tx/task'
 import { useClients } from '../ui/clients'
 import { Addr, ErrorBox, HandleBadge, Pill, Stat } from '../ui/components'
+import { OpGraph } from '../ui/OpGraph'
 import { fmt, pct, txUrl } from '../ui/format'
 import { useAsync } from '../ui/useAsync'
 
@@ -212,6 +213,16 @@ function TxDetails({ t }: { t: LoadedTx }) {
       )}
 
       {graph.tasks.length === 0 && graph.decrypts.length === 0 && graph.inputs.size === 0 && <p className="muted">This transaction did not interact with the CoFHE TaskManager.</p>}
+
+      {graph.tasks.length > 1 && (
+        <section className="card">
+          <div className="card-head">
+            <h2>Graph</h2>
+            <span className="muted small">Click a task to find it in the table.</span>
+          </div>
+          <OpGraph graph={graph} known={leaks.known} onSelect={jump} />
+        </section>
+      )}
 
       {graph.tasks.length > 0 && (
         <section className="card">

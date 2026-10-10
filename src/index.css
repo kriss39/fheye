@@ -504,3 +504,84 @@ details summary {
     display: none;
   }
 }
+
+/* op graph */
+.graph-wrap {
+  overflow-x: auto;
+}
+.opgraph {
+  display: block;
+}
+.opgraph .edge {
+  fill: none;
+  stroke: var(--text-2);
+  stroke-opacity: 0.45;
+  stroke-width: 1.4;
+}
+.opgraph .edge.public {
+  stroke: var(--warn);
+  stroke-opacity: 0.9;
+}
+.opgraph .node rect {
+  fill: var(--surface-2);
+  stroke: var(--border);
+  stroke-width: 1.2;
+}
+.opgraph .node.secret rect {
+  fill: var(--accent-weak);
+  stroke: var(--accent);
+}
+.opgraph .node.public rect {
+  fill: var(--warn-weak);
+  stroke: var(--warn);
+  stroke-width: 1.8;
+}
+.opgraph .node.trivial rect {
+  fill: var(--surface);
+  stroke: var(--warn);
+  stroke-dasharray: 4 3;
+}
+.opgraph .node.clickable {
+  cursor: pointer;
+}
+.opgraph .node.clickable:hover rect {
+  stroke-width: 2.4;
+}
+.opgraph .node-label {
+  font: 600 12px var(--mono);
+  fill: var(--text);
+}
+.opgraph .node-sub {
+  font: 11px var(--mono);
+  fill: var(--text-2);
+}
+.opgraph .node.public .node-sub,
+.opgraph .node.trivial .node-sub {
+  fill: var(--warn);
+  font-weight: 600;
+}
+.legend {
+  margin-top: 8px;
+  gap: 6px;
+}
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1.5px solid var(--border);
+  background: var(--surface-2);
+  margin-left: 8px;
+}
+.swatch.public {
+  background: var(--warn-weak);
+  border-color: var(--warn);
+}
+.swatch.trivial {
+  background: var(--surface);
+  border: 1.5px dashed var(--warn);
+}
+.swatch.secret {
+  background: var(--accent-weak);
+  border-color: var(--accent);
+}
