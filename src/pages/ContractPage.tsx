@@ -9,6 +9,8 @@ import { privacyGrade } from '../report/grade'
 import { customRpc } from '../settings'
 import { useClients } from '../ui/clients'
 import { Addr, Bars, Copy, ErrorBox, Progress, Stat, TxLink } from '../ui/components'
+import { ArrowIcon, ReportIcon } from '../ui/icons'
+import { spotlight } from '../ui/motion'
 import { fmt, pct } from '../ui/format'
 import { Gauge } from '../ui/Gauge'
 import { useAsync } from '../ui/useAsync'
@@ -35,6 +37,49 @@ export function ContractPage({ params }: { params: string[] }) {
       <ReportForm key={params.join('/')} chainKey={chainKey ?? 'sepolia'} address={address ?? ''} seconds={seconds} />
       {chain && address && isAddress(address) && <Report key={`${chain.id}:${address}:${seconds}`} chain={chain} address={address} seconds={seconds} />}
       {address && !isAddress(address) && <ErrorBox error="That is not a contract address." />}
+      {!address && <ContractIntro />}
+    </div>
+  )
+}
+
+const GRADES: Array<[string, 'ok' | 'warn' | 'danger', string]> = [
+  ['A', 'ok', 'No computed value is provably public.'],
+  ['B', 'warn', 'Up to 10% of computed values are public.'],
+  ['C', 'warn', 'Up to a quarter are public.'],
+  ['D', 'danger', 'Up to half are public.'],
+  ['F', 'danger', 'Most computed values are public.'],
+]
+
+function ContractIntro() {
+  return (
+    <div className="grid2">
+      <a className="card tile spot" href="#/contract/sepolia/0x87a3effb84cbe1e4cab6ab430139ec41d156d55a/3600" onPointerMove={spotlight}>
+        <span className="tile-icon">
+          <ReportIcon />
+        </span>
+        <h3>Try a busy Sepolia contract</h3>
+        <p>One of the most active CoFHE contracts on Ethereum Sepolia: hundreds of transactions an hour, and half of its computed values come out public. Or pick a contract from “Busiest contracts” on the Mainnet page.</p>
+        <span className="go">
+          Grade it <ArrowIcon size={16} />
+        </span>
+      </a>
+      <section className="card stack tight">
+        <h3>How the grade works</h3>
+        <p className="muted small" style={{ margin: 0 }}>
+          FHEye looks at the contract's latest transactions and counts how many of the values it computed anyone can work out from public data.
+        </p>
+        <ul className="grade-legend">
+          {GRADES.map(([g, tone, text]) => (
+            <li key={g}>
+              <span className={`grade sm ${tone}`}>{g}</span>
+              <span>{text}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="muted small" style={{ margin: 0 }}>
+          An A is good news, not a proof of privacy: values built from encrypted inputs can still leak in other ways.
+        </p>
+      </section>
     </div>
   )
 }

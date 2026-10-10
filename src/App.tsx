@@ -7,7 +7,7 @@ import { StatusPage } from './pages/StatusPage'
 import { TxPage } from './pages/TxPage'
 import { customRpc, setCustomRpc, useSettingsVersion } from './settings'
 import { GraphIcon, HashIcon, PulseIcon, ReportIcon } from './ui/icons'
-import { LaunchBar } from './ui/Launch'
+import { LaunchBar, MainnetBadge } from './ui/Launch'
 
 function useRoute(): string[] {
   const parse = () => location.hash.replace(/^#\/?/, '').split('/').filter(Boolean)
@@ -47,6 +47,7 @@ export default function App() {
               <a key={key} href={`#/${key}`} aria-current={page === key ? 'page' : undefined}>
                 <Icon size={16} />
                 {label}
+                {key === 'status' && <MainnetBadge />}
               </a>
             ))}
           </nav>
@@ -69,6 +70,24 @@ export default function App() {
           )}
         </main>
         <footer className="stack tight">
+          <div className="footer-top">
+            <div className="footer-brand">
+              <img src={`${import.meta.env.BASE_URL}favicon.svg`} width={36} height={36} alt="" />
+              <div>
+                <b>
+                  FH<em>Eye</em>
+                </b>
+                <p>See what encryption doesn't hide. An independent inspector for Fhenix CoFHE: paste a transaction and find the encrypted values anyone can compute.</p>
+              </div>
+            </div>
+            <nav className="footer-links" aria-label="Footer">
+              <a href="#/tx">Transaction</a>
+              <a href="#/contract">Contract report</a>
+              <a href="#/handles">Handles</a>
+              <a href="#/status">Mainnet</a>
+              <a href="#examples">Examples</a>
+            </nav>
+          </div>
           <Settings />
           <span>
             FHEye is unofficial and not affiliated with Fhenix. It runs entirely in your browser and only reads public chain data through the RPC endpoints below. Op semantics follow TFHE-rs, the library behind CoFHE's FHE engine.
