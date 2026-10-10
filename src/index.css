@@ -2559,9 +2559,25 @@ button.copy:hover:not(:disabled) {
   }
 }
 
-.footer-contact {
-  margin: 0 0 6px;
+.footer-social {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-.footer-contact a {
-  font-weight: 600;
+.social {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: var(--text-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+.social:hover {
+  color: var(--accent);
+  border-color: var(--accent);
 }

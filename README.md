@@ -147,7 +147,7 @@ A CI step that fails when a contract's recent transactions leak computed values:
 
 ## Contact
 
-Questions, ideas or a leak FHEye missed: senanmammadov0@gmail.com, or open an issue.
+Questions, ideas or a leak FHEye missed: [email](mailto:senanmammadov0@gmail.com?subject=FHEye) or open an issue.
 
 ## License
 

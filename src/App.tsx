@@ -6,7 +6,7 @@ import { HomePage, Hero } from './pages/HomePage'
 import { StatusPage } from './pages/StatusPage'
 import { TxPage } from './pages/TxPage'
 import { customRpc, setCustomRpc, useSettingsVersion } from './settings'
-import { BookIcon, GraphIcon, HashIcon, PulseIcon, RadarIcon, ReportIcon } from './ui/icons'
+import { BookIcon, GitHubIcon, GraphIcon, HashIcon, MailIcon, PulseIcon, RadarIcon, ReportIcon } from './ui/icons'
 import { DocsPage } from './pages/DocsPage'
 import { UniversalSearch } from './ui/UniversalSearch'
 import { RadarPage } from './pages/RadarPage'
@@ -98,18 +98,17 @@ export default function App() {
               <a href="#examples">Examples</a>
               <a href="#/docs">Docs</a>
               <a href="#/docs/api">API</a>
-              <a href="https://github.com/kriss39/fheye" target="_blank" rel="noreferrer">
-                GitHub
-              </a>
             </nav>
+            <div className="footer-social">
+              <span className="muted small">Questions, ideas or a leak FHEye missed?</span>
+              <a className="social" href="mailto:senanmammadov0@gmail.com?subject=FHEye" aria-label="Email" title="Email">
+                <MailIcon size={18} />
+              </a>
+              <a className="social" href="https://github.com/kriss39/fheye" target="_blank" rel="noreferrer" aria-label="GitHub" title="GitHub">
+                <GitHubIcon size={18} />
+              </a>
+            </div>
           </div>
-          <p className="footer-contact">
-            Questions, ideas or a leak FHEye missed? Write to <a href="mailto:senanmammadov0@gmail.com">senanmammadov0@gmail.com</a> or open an issue on{' '}
-            <a href="https://github.com/kriss39/fheye/issues" target="_blank" rel="noreferrer">
-              GitHub
-            </a>
-            .
-          </p>
           <Settings />
           <span>
             FHEye is unofficial and not affiliated with Fhenix. It runs entirely in your browser and only reads public chain data through the RPC endpoints below. Op semantics follow TFHE-rs, the library behind CoFHE's FHE engine.
