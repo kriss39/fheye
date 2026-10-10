@@ -1,5 +1,6 @@
 // Opens the app in headless Chrome, visits each route and saves screenshots plus console errors.
 // Usage: npx tsx scripts/screens.ts <outDir> [route...]
+// CUSTOM_RPC="1=http://127.0.0.1:8545" points a chain at another RPC (e.g. a local fork), like the settings panel.
 import { mkdirSync } from 'node:fs'
 import { chromium } from 'playwright-core'
 import { createServer } from 'vite'
@@ -16,6 +17,8 @@ const browser = await chromium.launch({ channel: 'chrome', headless: true })
 try {
   for (const scheme of (process.env.SCHEME ? [process.env.SCHEME] : ['light', 'dark']) as Array<'light' | 'dark'>) {
     const page = await browser.newPage({ viewport: { width: Number(process.env.WIDTH ?? 1280), height: 900 }, colorScheme: scheme })
+    const rpcs = (process.env.CUSTOM_RPC ?? '').split(',').filter(Boolean).map((pair) => pair.split('=') as [string, string])
+    await page.addInitScript((pairs) => pairs.forEach(([id, url]) => localStorage.setItem(`fhelens:rpc:${id}`, url)), rpcs)
     const errors: string[] = []
     page.on('console', (m) => m.type() === 'error' && errors.push(m.text().slice(0, 240)))
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`))
