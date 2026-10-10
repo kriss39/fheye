@@ -4,10 +4,12 @@ import { useState, type FormEvent } from 'react'
 import { isAddress, type Address } from 'viem'
 import { CHAINS, type LensChain } from '../chains'
 import { contractReport, type ReportPhase } from '../report/contract'
+import { privacyGrade } from '../report/grade'
 import { customRpc } from '../settings'
 import { useClients } from '../ui/clients'
-import { Addr, Bars, ErrorBox, Progress, Stat, TxLink } from '../ui/components'
+import { Addr, Bars, Copy, ErrorBox, Progress, Stat, TxLink } from '../ui/components'
 import { fmt, pct } from '../ui/format'
+import { Gauge } from '../ui/Gauge'
 import { useAsync } from '../ui/useAsync'
 
 const WINDOWS: Array<[string, number]> = [
@@ -108,6 +110,7 @@ function Report({ chain, address, seconds }: { chain: LensChain; address: Addres
     )
 
   const publicShare = t.computed ? t.publicComputed / t.computed : 0
+  const grade = privacyGrade(t.publicComputed, t.computed)
   const opBars = Object.entries(r.byOp).sort((a, b) => b[1] - a[1])
   const leakBars = Object.entries(r.publicByOp).sort((a, b) => b[1] - a[1])
 
@@ -118,9 +121,21 @@ function Report({ chain, address, seconds }: { chain: LensChain; address: Addres
           <h2>
             <Addr chain={chain} address={address} /> <span className="muted small">on {chain.name}</span>
           </h2>
+          <Copy text={location.href} label="copy report link" />
+        </div>
+        <div className="score">
+          <Gauge share={publicShare} tone={grade.tone} label="of computed values are public" />
+          <div className={`grade ${grade.tone}`} aria-label={`Grade ${grade.grade}`}>
+            {grade.grade}
+          </div>
+          <div className="score-text">
+            <b>
+              {pct(publicShare)} of computed values are public ({fmt(t.publicComputed)} of {fmt(t.computed)})
+            </b>
+            <span>{grade.text} Public means anyone can recompute the value from plaintext constants or published decrypts; the rest is not proven private, just not provably public.</span>
+          </div>
         </div>
         <div className="stats">
-          <Stat label={`computed values public (${fmt(t.publicComputed)} of ${fmt(t.computed)})`} value={pct(publicShare)} tone={t.publicComputed ? 'warn' : undefined} />
           <Stat label="plaintext constants" value={fmt(t.trivial)} />
           <Stat label={`outputs anyone can decrypt (of ${fmt(t.outputs)})`} value={fmt(t.global)} />
           <Stat label="published decrypts" value={fmt(t.decrypts)} />

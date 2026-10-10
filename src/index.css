@@ -685,3 +685,70 @@ details summary {
   font-family: var(--mono);
   font-weight: 600;
 }
+
+/* contract report score */
+.score {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.gauge-track,
+.gauge-value {
+  fill: none;
+  stroke-width: 12;
+  stroke-linecap: round;
+}
+.gauge-track {
+  stroke: var(--surface-2);
+}
+.gauge.ok .gauge-value {
+  stroke: var(--ok);
+}
+.gauge.warn .gauge-value {
+  stroke: var(--warn);
+}
+.gauge.danger .gauge-value {
+  stroke: var(--danger);
+}
+.gauge-number {
+  text-anchor: middle;
+  font-size: 22px;
+  font-weight: 700;
+  fill: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.grade {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  font-weight: 800;
+}
+.grade.ok {
+  background: var(--ok-weak);
+  color: var(--ok);
+}
+.grade.warn {
+  background: var(--warn-weak);
+  color: var(--warn);
+}
+.grade.danger {
+  background: var(--danger-weak);
+  color: var(--danger);
+}
+.score-text {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.score-text b {
+  color: var(--text);
+}
+.score-text span {
+  font-size: 13px;
+}
