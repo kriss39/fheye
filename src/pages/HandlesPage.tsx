@@ -3,10 +3,11 @@
 import { useMemo, useState } from 'react'
 import { isAddress, type Address } from 'viem'
 import { getAcl, handleStatus, type HandleStatus } from '../acl/check'
-import { CHAINS, chainById } from '../chains'
+import { CHAINS, chainById, type LensChain } from '../chains'
 import { decodeMany, type DecodedHandle } from '../handle/decode'
 import { lookupTrivial } from '../leak/dictionary'
 import { useClients } from '../ui/clients'
+import { DecryptButton } from '../ui/DecryptButton'
 import { Copy, ErrorBox, Pill } from '../ui/components'
 import { errorMessage } from '../ui/format'
 
@@ -114,7 +115,7 @@ export function HandlesPage({ params }: { params: string[] }) {
                       </td>
                     </tr>
                   ) : (
-                    <HandleRow key={i} h={r} s={status?.get(r.handle)} showStatus={!!status} who={lookup?.who} />
+                    <HandleRow key={i} h={r} s={status?.get(r.handle)} showStatus={!!status} who={lookup?.who} chain={chain} />
                   ),
                 )}
               </tbody>
@@ -126,7 +127,7 @@ export function HandlesPage({ params }: { params: string[] }) {
   )
 }
 
-function HandleRow({ h, s, showStatus, who }: { h: DecodedHandle; s?: HandleStatus; showStatus: boolean; who?: Address }) {
+function HandleRow({ h, s, showStatus, who, chain }: { h: DecodedHandle; s?: HandleStatus; showStatus: boolean; who?: Address; chain: LensChain }) {
   const trivialValue = h.isTrivial ? lookupTrivial(h.handle) : undefined
   return (
     <tr>
@@ -149,7 +150,18 @@ function HandleRow({ h, s, showStatus, who }: { h: DecodedHandle; s?: HandleStat
       <td className="mono">{h.securityZone}</td>
       {showStatus && (
         <>
-          <td>{s ? s.global ? <Pill tone="danger">yes</Pill> : <span className="muted">no</span> : null}</td>
+          <td>
+            {s ? (
+              s.global ? (
+                <span className="stack tight" style={{ gap: 2 }}>
+                  <Pill tone="danger">yes</Pill>
+                  <DecryptButton chain={chain} handle={h.handle} expected={trivialValue ?? s.published ?? undefined} />
+                </span>
+              ) : (
+                <span className="muted">no</span>
+              )
+            ) : null}
+          </td>
           <td>{s ? s.published !== null ? <span className="value">{s.published.toString()}</span> : <span className="muted">none</span> : null}</td>
           {who && <td>{s ? s.allowed[who] ? <Pill tone="ok">yes</Pill> : <span className="muted">no</span> : null}</td>}
         </>

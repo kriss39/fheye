@@ -13,6 +13,7 @@ import type { Task } from '../tx/task'
 import { useClients } from '../ui/clients'
 import { Addr, ErrorBox, HandleBadge, Pill, Stat } from '../ui/components'
 import { OpGraph } from '../ui/OpGraph'
+import { DecryptButton } from '../ui/DecryptButton'
 import { fmt, pct, txUrl } from '../ui/format'
 import { useAsync } from '../ui/useAsync'
 
@@ -264,7 +265,7 @@ function TxDetails({ t }: { t: LoadedTx }) {
                       </td>
                       <td data-label="Public value">{k && <PublicValue k={k} task={task} t={t} rowOf={rowOf} />}</td>
                       <td data-label="Access">
-                        <Access s={status.get(task.ctHash)} t={t} />
+                        <Access s={status.get(task.ctHash)} t={t} h={task.ctHash} />
                       </td>
                     </tr>
                   )
@@ -304,7 +305,7 @@ function TxDetails({ t }: { t: LoadedTx }) {
                       </td>
                       <td data-label="Public value">{k && <span className="value">{k.value.toString()}</span>}</td>
                       <td data-label="Access">
-                        <Access s={status.get(h)} t={t} />
+                        <Access s={status.get(h)} t={t} h={h} />
                       </td>
                     </tr>
                   )
@@ -414,10 +415,11 @@ function PublicValue({ k, task, t, rowOf }: { k: Known; task: Task; t: LoadedTx;
   )
 }
 
-function Access({ s, t }: { s: HandleStatus | undefined; t: LoadedTx }) {
+function Access({ s, t, h }: { s: HandleStatus | undefined; t: LoadedTx; h: bigint }) {
   if (!s) return null
   const to = t.tx.to
   if (!s.global && s.published === null && !(to && s.allowed[to]) && !s.allowed[t.tx.from]) return null
+  const k = t.leaks.known.get(h)
   return (
     <span className="row" style={{ gap: 4 }}>
       {s.global && (
@@ -425,6 +427,7 @@ function Access({ s, t }: { s: HandleStatus | undefined; t: LoadedTx }) {
           anyone can decrypt
         </Pill>
       )}
+      {s.global && <DecryptButton chain={t.chain} handle={h} expected={k?.value} />}
       {s.published !== null && (
         <Pill tone="warn" title="A decrypt result for this handle is stored on-chain">
           decrypted: {s.published.toString()}

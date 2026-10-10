@@ -8,11 +8,13 @@ A browser-only inspector for [Fhenix CoFHE](https://cofhe-docs.fhenix.zone). Pas
 
 **Transaction view.** Give it a tx hash (the network is found automatically). It decodes every `TaskCreated`, `InputVerified` and `DecryptionResult` event the CoFHE TaskManager emitted and shows:
 
-- the task graph in execution order, with each input linked to the task that produced it;
+- the task graph, drawn as a layered diagram and listed in execution order, with each input linked to the task that produced it;
 - each output handle's type, security zone and trivial bit;
 - access status per handle: decryptable by anyone (`allowGlobal`), decrypt result published on-chain, allowed for the calling contract and the sender;
 - estimated gas per task (from the Fhenix docs gas table) and the FHE share of the tx's gas;
 - **values that look encrypted but are public** (see below).
+
+**Contract privacy report.** Give it a contract address: FHE Lens finds the contract's latest FHE transactions on a network, analyses each one and adds up how many computed values are provably public, how many plaintext constants it encrypts, and how many of its handles anyone may decrypt.
 
 **Handle decoder.** Paste handles in bulk and read their type, trivial bit and zone offline. Optionally ask a network whether each handle is globally decryptable, whether a decrypt result was published, and whether a given address is allowed.
 
@@ -34,7 +36,7 @@ Values are recomputed with the semantics of [TFHE-rs](https://github.com/zama-ai
 | `rem(x, 0)` | `x` | TFHE-rs docs |
 | `shl/shr/rol/ror` by ≥ bit width | amount taken modulo the width | TFHE-rs ≤ 1.6; 1.7+ returns 0 for shifts on overshift |
 
-When a derived value can be checked against a decrypt result published on-chain, the UI shows whether they match.
+When a derived value can be checked against a decrypt result published on-chain, the UI shows whether they match. For handles marked decryptable by anyone (`allowGlobal`), you can also ask the CoFHE threshold network for the value: FHE Lens sends the same request as `@cofhe/sdk`'s `decryptForTx().withoutACP()` and checks the returned signature against the TaskManager's `decryptResultSigner`, so the value doesn't have to be trusted. If a published or network result ever contradicts FHE Lens, the chain wins and every value that relied on the same assumption is dropped.
 
 **What this does not tell you.** Nothing is said about values derived from encrypted user inputs or randomness, and side channels (gas, control flow, timing) are out of scope. A handle that isn't marked is not proven private; it just isn't provably public.
 
@@ -65,6 +67,7 @@ Defaults are keyless public RPCs picked for browser CORS and log history; you ca
 npm install
 npm run dev        # http://localhost:5173
 npm test           # unit tests, including fixtures from real Sepolia txs
+npm run e2e        # smoke test in headless Chrome against live testnets
 npm run build      # static site in dist/
 ```
 
