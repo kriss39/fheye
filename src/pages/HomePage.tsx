@@ -1,9 +1,11 @@
 // Landing page: what FHE Lens finds, in one picture, and where to start.
 
 import { useState, type FormEvent } from 'react'
-import { Equation } from '../ui/Equation'
 import { ExampleTiles } from '../ui/ExampleTiles'
 import { ArrowIcon, GraphIcon, HashIcon, PulseIcon, ReportIcon, SearchIcon } from '../ui/icons'
+import { LensReveal } from '../ui/LensReveal'
+import { LivePulse } from '../ui/LivePulse'
+import { spotlight } from '../ui/motion'
 
 const isTxHash = (s: string) => /^0x[0-9a-fA-F]{64}$/.test(s)
 
@@ -48,17 +50,15 @@ export function Hero() {
               </>
             )}
           </p>
+          <LivePulse />
         </div>
-        <div className="hero-demo" aria-label="Example finding">
+        <div className="hero-demo">
           <div className="demo-label">
-            <GraphIcon size={16} /> What FHE Lens finds in a real token mint
+            <GraphIcon size={16} /> A real token mint on Base Sepolia, as the chain shows it
           </div>
-          <Equation
-            parts={[{ value: '0', kind: 'constant', note: 'plain number' }, '+', { value: '5,000,000', kind: 'constant', note: 'plain number' }]}
-            result={{ value: '5,000,000', kind: 'computed', note: 'new balance, encrypted' }}
-          />
-          <p className="demo-foot">
-            The balance is encrypted on-chain, but <b>anyone can compute it.</b>
+          <LensReveal />
+          <p className="lens-caption">
+            Every value looks encrypted. Under the lens: the balance is built from two plain numbers, so <b>anyone can compute it.</b>
           </p>
         </div>
       </div>
@@ -88,7 +88,7 @@ export function HomePage() {
         </div>
         <div className="steps">
           {STEPS.map(([title, text], i) => (
-            <div key={title} className="card step">
+            <div key={title} className="card step spot" onPointerMove={spotlight}>
               <span className="step-num">{i + 1}</span>
               <h3>{title}</h3>
               <p>{text}</p>
@@ -111,7 +111,7 @@ export function HomePage() {
         </div>
         <div className="tiles">
           {TOOLS.map((t) => (
-            <a key={t.href} className="card tile" href={t.href}>
+            <a key={t.href} className="card tile spot" href={t.href} onPointerMove={spotlight}>
               <span className="tile-icon">{t.icon}</span>
               <h3>{t.title}</h3>
               <p>{t.text}</p>

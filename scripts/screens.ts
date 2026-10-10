@@ -27,13 +27,13 @@ try {
       await page.goto(`http://localhost:5198/${route}`)
       // wait until nothing says "Loading/Reading/Scanning/Looking"
       await page
-        .waitForFunction(() => !/Loading|Reading|Scanning|Looking for|Starting…|Finding this|Analysing transactions/.test(document.body.innerText), undefined, { timeout: 120_000 })
+        .waitForFunction(() => !/Loading|Reading|Scanning|Looking for|Starting…|Finding this|Analysing transactions|reading the chain/.test(document.body.innerText), undefined, { timeout: 120_000 })
         .catch(() => errors.push(`timeout waiting for ${route}`))
       if (route.startsWith('#/handles/')) {
         await page.getByRole('button', { name: 'Check on chain' }).click()
         await page.waitForFunction(() => !document.body.innerText.includes('Checking…'), undefined, { timeout: 30_000 }).catch(() => errors.push('handles check timeout'))
       }
-      await page.waitForTimeout(300)
+      await page.waitForTimeout(2000) // let entrance animations settle
       const name = `${scheme}-${route.replace(/[^a-z0-9]+/gi, '_').slice(0, 40)}.png`
       const maxHeight = Number(process.env.MAX_HEIGHT ?? 0)
       const height = await page.evaluate(() => document.documentElement.scrollHeight)

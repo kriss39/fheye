@@ -2,7 +2,7 @@
 // left, each task one column right of its deepest input. Public values are highlighted, and
 // selecting a task lights up everything it is computed from.
 
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import type { Known } from '../leak/evaluate'
 import type { TxGraph } from '../tx/graph'
 import { shortHex } from './format'
@@ -146,13 +146,22 @@ export function OpGraph({ graph, known, onSelect }: { graph: TxGraph; known: Map
           const y2 = e.to.y + ((e.slot + 1) * NODE_H) / (e.of + 1)
           const mid = (x1 + x2) / 2
           const state = lit.has(e.to.handle) && lit.has(e.from.handle) ? ' lit' : dimmed(e.to.handle) ? ' dim' : ''
-          return <path key={i} className={`edge${e.to.kind === 'public' ? ' public' : ''}${state}`} d={`M${x1},${y1} C${mid},${y1} ${mid},${y2} ${x2},${y2}`} />
+          return (
+            <path
+              key={i}
+              className={`edge${e.to.kind === 'public' ? ' public' : ''}${state}`}
+              d={`M${x1},${y1} C${mid},${y1} ${mid},${y2} ${x2},${y2}`}
+              pathLength={1}
+              style={{ '--d': e.to.depth } as CSSProperties}
+            />
+          )
         })}
         {[...nodes.values()].map((n) => (
           <g
             key={n.handle.toString()}
             className={`node ${n.kind}${n.row !== null ? ' clickable' : ''}${dimmed(n.handle) ? ' dim' : ''}${n.handle === active ? ' active' : ''}`}
             transform={`translate(${n.x},${n.y})`}
+            style={{ '--d': n.depth } as CSSProperties}
             onMouseEnter={() => n.row !== null && setHovered(n.handle)}
             onClick={() => n.row !== null && setSelected(n.handle === selected ? null : n.handle)}
           >

@@ -2,13 +2,14 @@
 
 import type { Chip, EquationPart } from '../leak/explain'
 import { LockIcon, UnlockIcon } from './icons'
+import { Scramble } from './Scramble'
 
 function ChipView({ chip, result = false }: { chip: Chip; result?: boolean }) {
   return (
     <div className={`chip ${chip.kind}${result ? ' result' : ''}`}>
       <b>
         {chip.kind === 'secret' ? <LockIcon size={20} /> : <UnlockIcon size={20} />}
-        {chip.value}
+        {chip.kind === 'secret' ? chip.value : <Scramble key={chip.value} text={chip.value} delay={result ? 650 : 250} />}
       </b>
       <span>{chip.note}</span>
     </div>

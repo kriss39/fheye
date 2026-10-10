@@ -1,11 +1,12 @@
 import { EXAMPLES } from '../examples'
 import { ArrowIcon, ShieldIcon, UnlockIcon } from './icons'
+import { spotlight } from './motion'
 
 export function ExampleTiles() {
   return (
     <div className="tiles">
       {EXAMPLES.map((e) => (
-        <a key={e.hash} className="card tile" href={`#/tx/${e.chain}/${e.hash}`}>
+        <a key={e.hash} className="card tile spot" href={`#/tx/${e.chain}/${e.hash}`} onPointerMove={spotlight}>
           {e.verdict === 'exposed' ? (
             <span className="badge exposed">
               <UnlockIcon size={14} /> Exposed
