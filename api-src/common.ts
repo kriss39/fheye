@@ -36,8 +36,31 @@ export function chainParam(url: URL): LensChain | undefined {
   return chain
 }
 
-/** Runs a handler and turns failures into JSON errors. */
-export async function handle(fn: () => Promise<Response>): Promise<Response> {
+// A best-effort limit per client IP and function instance: cached responses never reach the
+// function, so this only throttles clients hammering uncached lookups.
+const LIMIT = 30
+const WINDOW_MS = 60_000
+const hits = new Map<string, { start: number; count: number }>()
+
+export function rateLimited(request: Request, now = Date.now()): Response | null {
+  const ip = (request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown').split(',')[0].trim()
+  const h = hits.get(ip)
+  if (!h || now - h.start >= WINDOW_MS) {
+    hits.set(ip, { start: now, count: 1 })
+    if (hits.size > 10_000) hits.clear()
+    return null
+  }
+  if (++h.count <= LIMIT) return null
+  const retry = Math.ceil((h.start + WINDOW_MS - now) / 1000)
+  const r = json({ error: `Too many requests: up to ${LIMIT} per minute. Try again in ${retry} s.` }, 429)
+  r.headers.set('retry-after', String(retry))
+  return r
+}
+
+/** Runs a handler (after the rate limit) and turns failures into JSON errors. */
+export async function handle(fn: () => Promise<Response>, request?: Request): Promise<Response> {
+  const limited = request && rateLimited(request)
+  if (limited) return limited
   try {
     return await fn()
   } catch (e) {

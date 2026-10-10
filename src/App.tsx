@@ -6,7 +6,8 @@ import { HomePage, Hero } from './pages/HomePage'
 import { StatusPage } from './pages/StatusPage'
 import { TxPage } from './pages/TxPage'
 import { customRpc, setCustomRpc, useSettingsVersion } from './settings'
-import { GraphIcon, HashIcon, PulseIcon, RadarIcon, ReportIcon } from './ui/icons'
+import { BookIcon, GraphIcon, HashIcon, PulseIcon, RadarIcon, ReportIcon } from './ui/icons'
+import { DocsPage } from './pages/DocsPage'
 import { UniversalSearch } from './ui/UniversalSearch'
 import { RadarPage } from './pages/RadarPage'
 import { LaunchBar, MainnetBadge } from './ui/Launch'
@@ -28,12 +29,13 @@ const TABS = [
   ['contract', 'Contract', ReportIcon],
   ['handles', 'Handles', HashIcon],
   ['status', 'Mainnet', PulseIcon],
+  ['docs', 'Docs', BookIcon],
 ] as const
 
 export default function App() {
   const [page = 'home', ...params] = useRoute()
 
-  const known = page === 'tx' || page === 'contract' || page === 'handles' || page === 'status' || page === 'radar'
+  const known = page === 'tx' || page === 'contract' || page === 'handles' || page === 'status' || page === 'radar' || page === 'docs'
   return (
     <>
       <header className="brandbar">
@@ -61,7 +63,9 @@ export default function App() {
       {!known && <Hero />}
       <div className="shell">
         <main>
-          {page === 'radar' ? (
+          {page === 'docs' ? (
+            <DocsPage key={params.join('/')} params={params} />
+          ) : page === 'radar' ? (
             <RadarPage key={params.join('/')} params={params} />
           ) : page === 'status' ? (
             <StatusPage />
@@ -92,8 +96,20 @@ export default function App() {
               <a href="#/handles">Handles</a>
               <a href="#/status">Mainnet</a>
               <a href="#examples">Examples</a>
+              <a href="#/docs">Docs</a>
+              <a href="#/docs/api">API</a>
+              <a href="https://github.com/kriss39/fheye" target="_blank" rel="noreferrer">
+                GitHub
+              </a>
             </nav>
           </div>
+          <p className="footer-contact">
+            Questions, ideas or a leak FHEye missed? Write to <a href="mailto:senanmammadov0@gmail.com">senanmammadov0@gmail.com</a> or open an issue on{' '}
+            <a href="https://github.com/kriss39/fheye/issues" target="_blank" rel="noreferrer">
+              GitHub
+            </a>
+            .
+          </p>
           <Settings />
           <span>
             FHEye is unofficial and not affiliated with Fhenix. It runs entirely in your browser and only reads public chain data through the RPC endpoints below. Op semantics follow TFHE-rs, the library behind CoFHE's FHE engine.

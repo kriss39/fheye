@@ -27,7 +27,7 @@ try {
       await page.goto(`http://localhost:5198/${route}`)
       // wait until nothing says "Loading/Reading/Scanning/Looking"
       await page
-        .waitForFunction(() => !/Loading|Reading|Scanning|Looking for|Starting…|Finding this|Analysing transactions|reading the chain/.test(document.body.innerText), undefined, { timeout: 120_000 })
+        .waitForFunction(() => !/Loading|Reading the|Reading TaskManager|Scanning|Looking for|Starting…|Finding this|Analysing transactions|reading the chain/.test(document.body.innerText), undefined, { timeout: 120_000 })
         .catch(() => errors.push(`timeout waiting for ${route}`))
       if (route.startsWith('#/handles/')) {
         await page.getByRole('button', { name: 'Check on chain' }).click()

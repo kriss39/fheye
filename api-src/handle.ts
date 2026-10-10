@@ -26,5 +26,5 @@ export function GET(request: Request) {
       status = new Map(handles.map((h, i) => [h.handle, results[i]]))
     }
     return json({ chain: chain?.key ?? null, handles: summarizeHandles(handles, status) }, 200, chain ? 300 : 86400)
-  })
+  }, request)
 }

@@ -7,7 +7,7 @@ import { handle, json, preflight, SITE } from './common'
 
 export const OPTIONS = preflight
 
-export function GET() {
+export function GET(request: Request) {
   return handle(async () => {
     const chains = await Promise.all(
       CHAINS.filter((c) => c.mainnet).map((c) => {
@@ -16,5 +16,5 @@ export function GET() {
       }),
     )
     return json({ live: chains.some((c) => c.flags.isEnabled), chains, url: `${SITE}/#/status` }, 200, 60)
-  })
+  }, request)
 }

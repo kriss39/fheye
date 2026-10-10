@@ -19,5 +19,5 @@ export function GET(request: Request) {
     const t = await loadTx(chain, hash as Hash, makeClients(chain).client)
     // A mined transaction never changes; ACL and decrypt status can, so cache for an hour.
     return json({ verdict: explainTx(t.graph, t.leaks, t.status), ...summarizeTx(t), url: `${SITE}/#/tx/${chain.key}/${hash}` }, 200, 3600)
-  })
+  }, request)
 }

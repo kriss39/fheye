@@ -19,7 +19,7 @@ export function Hero() {
           <p className="sub">FHEye reads a CoFHE transaction and shows which encrypted values anyone can work out from public data, and why. No wallet, nothing to install.</p>
           <UniversalSearch />
           <p className="hero-note">
-            No hash at hand? <a href="#examples">Try an example</a>, or watch the <a href="#/radar">leak radar</a> live.
+            New here? <a href="#/docs">Start with the docs</a>. No hash at hand? <a href="#examples">Try an example</a> or watch the <a href="#/radar">leak radar</a>.
           </p>
           <LivePulse />
         </div>

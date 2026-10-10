@@ -4,6 +4,8 @@ A client-side inspector for [Fhenix CoFHE](https://cofhe-docs.fhenix.zone), in t
 
 > Unofficial. Not affiliated with Fhenix. FHEye only reads public chain data; it never sends transactions or asks for a wallet.
 
+**Live: [fheye.vercel.app](https://fheye.vercel.app)** · [Docs](https://fheye.vercel.app/#/docs) · [API](https://fheye.vercel.app/api)
+
 ![FHEye: encrypted isn't always private](docs/home.png)
 
 ## What it does
@@ -20,7 +22,13 @@ A client-side inspector for [Fhenix CoFHE](https://cofhe-docs.fhenix.zone), in t
 
 **Leak radar.** The latest CoFHE transactions on a network as they happen, refreshed every 30 seconds, each marked Exposed or Nothing found, with the contracts leaking most right now. Verdicts come from the scanned logs alone, following values across the transactions in the window.
 
+![Leak radar: the latest Sepolia transactions with their verdicts](docs/radar.png)
+
 **Search.** One box takes a transaction hash or a contract address; the network is found automatically.
+
+**Docs.** A guide on the site for newcomers and developers: reading a verdict, the leak patterns and how to fix them (with Solidity examples), the API and the command line. Live at [fheye.vercel.app/#/docs](https://fheye.vercel.app/#/docs).
+
+![Docs](docs/docs.png)
 
 **Contract privacy report.** Give it a contract address: FHEye finds the contract's latest FHE transactions on a network, analyses each one and adds up how many computed values are provably public, how many plaintext constants it encrypts, and how many of its handles anyone may decrypt. Handles are content-addressed, so each value is followed back through earlier transactions in the window: a balance that started from a trivially encrypted zero is still flagged in later transactions that only add to it. The report grades the share of public values (A only when nothing is provably public) and its link can be shared.
 
@@ -96,7 +104,7 @@ Read-only JSON over HTTP, with open CORS and edge caching:
 | `GET /api/mainnet` | Live state of both mainnet TaskManagers: intake, access list, allowlisted callers, task counts. |
 | `GET /api` | This list. |
 
-Bigints are decimal strings and handles are 32-byte hex. The functions live in `api-src/` and are bundled into `api/` by `npm run build:api` before a deploy.
+Bigints are decimal strings and handles are 32-byte hex. Each client gets up to 30 uncached requests a minute (HTTP 429 with Retry-After beyond that). The functions live in `api-src/` and are bundled into `api/` by `npm run build:api` before a deploy.
 
 ## Launch bot
 
@@ -136,6 +144,10 @@ A CI step that fails when a contract's recent transactions leak computed values:
     cd /tmp/fheye && npm ci && npm run build:cli
     node dist-cli/fheye.mjs contract ${{ vars.CONTRACT }} --chain sepolia --hours 6 --fail-on-public
 ```
+
+## Contact
+
+Questions, ideas or a leak FHEye missed: senanmammadov0@gmail.com, or open an issue.
 
 ## License
 

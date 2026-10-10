@@ -83,3 +83,9 @@ export const RadarIcon = (p: P) => (
     <path d="M12 12 18.5 5.5" />
   </Icon>
 )
+export const BookIcon = (p: P) => (
+  <Icon {...p}>
+    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" />
+    <path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20" />
+  </Icon>
+)
