@@ -21,6 +21,8 @@ export interface LensChain {
   taskManager: `0x${string}`
   /** First block with TaskManager logs; scans for admin events start here. */
   deployBlock: bigint
+  /** Average seconds per block, for time-based windows. */
+  blockTime: number
 }
 
 const MAINNET_TM = '0x52E7a0cAF234b266bCFAa6aA933a412FDe58432A' as const
@@ -39,6 +41,7 @@ export const CHAINS: LensChain[] = [
     explorer: 'https://etherscan.io',
     taskManager: MAINNET_TM,
     deployBlock: 26_120_645n,
+    blockTime: 12,
   },
   {
     id: 42161,
@@ -51,6 +54,7 @@ export const CHAINS: LensChain[] = [
     explorer: 'https://arbiscan.io',
     taskManager: MAINNET_TM,
     deployBlock: 511_675_619n,
+    blockTime: 0.25,
   },
   {
     id: 11155111,
@@ -64,6 +68,7 @@ export const CHAINS: LensChain[] = [
     explorer: 'https://sepolia.etherscan.io',
     taskManager: TESTNET_TM,
     deployBlock: 0n,
+    blockTime: 12,
   },
   {
     id: 421614,
@@ -76,6 +81,7 @@ export const CHAINS: LensChain[] = [
     explorer: 'https://sepolia.arbiscan.io',
     taskManager: TESTNET_TM,
     deployBlock: 0n,
+    blockTime: 0.25,
   },
   {
     id: 84532,
@@ -88,6 +94,7 @@ export const CHAINS: LensChain[] = [
     explorer: 'https://sepolia.basescan.org',
     taskManager: TESTNET_TM,
     deployBlock: 0n,
+    blockTime: 2,
   },
 ]
 

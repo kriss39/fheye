@@ -4,7 +4,6 @@ import { taskManagerAbi } from '../src/abi'
 import { chainById } from '../src/chains'
 import { makeClients } from '../src/client'
 import { scanLogs } from '../src/logs'
-import { adminEventAbis } from '../src/mainnet/status'
 
 interface Row {
   name: string
@@ -54,9 +53,7 @@ export async function runS2(): Promise<Row[]> {
     const el = document.getElementById('out')
     if (el) el.textContent += `${row.ok ? 'OK ' : 'ERR'} ${row.name}: ${row.ms} ms, ${row.logs} logs, ${row.requests} req ${row.error ?? ''}\n`
   }
-  await push(bench('ethereum admin events since deploy (drpc, 10k chunks)', () => scan(1, adminEventAbis, 'deploy')))
   await push(bench('ethereum all TM logs since deploy (drpc, 10k chunks)', () => scan(1, [], 'deploy')))
-  await push(bench('arbitrum admin events since deploy (arb1)', () => scan(42161, adminEventAbis, 'deploy')))
   await push(bench('arbitrum all TM logs since deploy (arb1, 1M chunks)', () => scan(42161, [], 'deploy')))
   await push(bench('sepolia TaskCreated last 1k blocks (publicnode)', () => scan(11155111, taskCreated, 1000n, { useRpc: 'https://ethereum-sepolia-rpc.publicnode.com', maxRange: 10_000n })))
   await push(bench('sepolia TaskCreated last 1k blocks (tenderly)', () => scan(11155111, taskCreated, 1000n)))
