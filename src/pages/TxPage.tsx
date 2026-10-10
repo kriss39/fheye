@@ -12,6 +12,7 @@ import { findTxChain, loadTx, type LoadedTx } from '../tx/load'
 import type { Task } from '../tx/task'
 import { useClients } from '../ui/clients'
 import { Addr, ErrorBox, HandleBadge, Pill, Stat } from '../ui/components'
+import { Glossary } from '../ui/Glossary'
 import { OpGraph } from '../ui/OpGraph'
 import { DecryptButton } from '../ui/DecryptButton'
 import { fmt, pct, txUrl } from '../ui/format'
@@ -37,6 +38,7 @@ export function TxPage({ params }: { params: string[] }) {
       </div>
       <TxForm key={`${chainKey}:${hash}`} initialHash={hash ?? ''} initialChain={chainKey ?? 'auto'} />
       {!hash && <Examples />}
+      {!hash && <Glossary open />}
       {hash && !isTxHash(hash) && <ErrorBox error="That is not a transaction hash (0x followed by 64 hex characters)." />}
       {hash && isTxHash(hash) && !chain && <FindChain hash={hash as Hash} />}
       {hash && isTxHash(hash) && chain && <TxView key={`${chain.id}:${hash}`} chain={chain} hash={hash as Hash} />}
@@ -214,6 +216,8 @@ function TxDetails({ t }: { t: LoadedTx }) {
       )}
 
       {graph.tasks.length === 0 && graph.decrypts.length === 0 && graph.inputs.size === 0 && <p className="muted">This transaction did not interact with the CoFHE TaskManager.</p>}
+
+      {graph.tasks.length > 0 && <Glossary />}
 
       {graph.tasks.length > 1 && (
         <section className="card">

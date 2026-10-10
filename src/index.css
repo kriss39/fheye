@@ -137,6 +137,7 @@ h3 {
   border-radius: 7px;
   color: var(--text-2);
   font-weight: 500;
+  white-space: nowrap;
 }
 .tabs a:hover {
   text-decoration: none;
@@ -474,6 +475,15 @@ details summary {
   .top {
     gap: 10px;
   }
+  .tabs {
+    width: 100%;
+    overflow-x: auto;
+  }
+  .tabs a {
+    flex: 1;
+    text-align: center;
+    padding: 5px 8px;
+  }
   .bar-row {
     grid-template-columns: 84px 1fr 52px;
   }
@@ -584,4 +594,60 @@ details summary {
 .swatch.secret {
   background: var(--accent-weak);
   border-color: var(--accent);
+}
+
+/* graph hint: only where the graph can overflow */
+.graph-hint {
+  display: none;
+}
+@media (max-width: 720px) {
+  .graph-hint {
+    display: block;
+    margin-top: 4px;
+  }
+}
+
+/* glossary */
+.glossary summary {
+  cursor: pointer;
+  list-style-position: inside;
+}
+.glossary summary h3 {
+  display: inline;
+}
+.glossary dl {
+  display: grid;
+  grid-template-columns: minmax(150px, max-content) 1fr;
+  gap: 8px 16px;
+  margin: 12px 0 0;
+}
+.glossary dl > div {
+  display: contents;
+}
+.glossary dt {
+  color: var(--text);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.glossary dd {
+  margin: 0;
+  font-size: 13px;
+}
+@media (max-width: 640px) {
+  .glossary dl {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .glossary dd {
+    margin-bottom: 8px;
+  }
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
 }

@@ -18,14 +18,14 @@ function useRoute(): string[] {
 }
 
 const TABS = [
-  ['status', 'Mainnet status'],
   ['tx', 'Transaction'],
   ['contract', 'Contract'],
   ['handles', 'Handles'],
+  ['status', 'Mainnet'],
 ] as const
 
 export default function App() {
-  const [page = 'status', ...params] = useRoute()
+  const [page = 'tx', ...params] = useRoute()
 
   return (
     <div className="shell">
@@ -43,14 +43,14 @@ export default function App() {
         </nav>
       </header>
       <main>
-        {page === 'tx' ? (
-          <TxPage params={params} />
+        {page === 'status' ? (
+          <StatusPage />
         ) : page === 'contract' ? (
           <ContractPage params={params} />
         ) : page === 'handles' ? (
           <HandlesPage key={params.join('/')} params={params} />
         ) : (
-          <StatusPage />
+          <TxPage params={page === 'tx' ? params : []} />
         )}
       </main>
       <footer className="stack tight">

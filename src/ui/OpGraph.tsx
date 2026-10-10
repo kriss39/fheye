@@ -146,8 +146,20 @@ export function OpGraph({ graph, known, onSelect }: { graph: TxGraph; known: Map
           </g>
         ))}
       </svg>
+      {width > 560 && <span className="small muted graph-hint">Scroll sideways to see the whole graph.</span>}
       <div className="row small muted legend">
-        <span className="swatch public" /> public value <span className="swatch trivial" /> plaintext constant <span className="swatch secret" /> encrypted <span className="swatch input" /> input / earlier tx
+        <span className="legend-item">
+          <span className="swatch public" /> public value
+        </span>
+        <span className="legend-item">
+          <span className="swatch trivial" /> plaintext constant
+        </span>
+        <span className="legend-item">
+          <span className="swatch secret" /> encrypted
+        </span>
+        <span className="legend-item">
+          <span className="swatch input" /> input / earlier tx
+        </span>
       </div>
     </div>
   )
