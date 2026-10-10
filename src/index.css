@@ -651,3 +651,37 @@ details summary {
   gap: 4px;
   white-space: nowrap;
 }
+
+/* graph: what the selected task is computed from */
+.opgraph .node,
+.opgraph .edge {
+  transition: opacity 0.15s;
+}
+.opgraph .node.dim,
+.opgraph .edge.dim {
+  opacity: 0.25;
+}
+.opgraph .edge.lit {
+  stroke: var(--accent);
+  stroke-width: 2.2;
+}
+.opgraph .edge.lit.public {
+  stroke: var(--warn);
+}
+.opgraph .node.active rect {
+  stroke-width: 2.6;
+}
+.why {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+}
+.why.public {
+  background: var(--warn-weak);
+}
+.why b {
+  font-family: var(--mono);
+  font-weight: 600;
+}

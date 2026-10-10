@@ -223,7 +223,7 @@ function TxDetails({ t }: { t: LoadedTx }) {
         <section className="card">
           <div className="card-head">
             <h2>Graph</h2>
-            <span className="muted small">Click a task to find it in the table.</span>
+            <span className="muted small">Click a task to see what it's computed from.</span>
           </div>
           <OpGraph graph={graph} known={leaks.known} onSelect={jump} />
         </section>
