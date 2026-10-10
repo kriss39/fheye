@@ -1,6 +1,6 @@
 // Chunked eth_getLogs for public RPCs. Splits [from, to] into maxRange-sized chunks, runs a few
 // in parallel, and bisects a chunk when the node rejects it for returning too many results.
-// Public endpoints differ a lot (see spike notes): some cap the span, some cap the result count,
+// Public endpoints differ a lot (see spike/rpc-probe.ts): some cap the span, some cap the result count,
 // some prune old history; this handles the first two and surfaces the third as an error.
 
 import type { AbiEvent, Address, Log, PublicClient } from 'viem'
