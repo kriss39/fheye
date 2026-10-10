@@ -1,122 +1,77 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react'
+import { CHAINS } from './chains'
+import { HandlesPage } from './pages/HandlesPage'
+import { StatusPage } from './pages/StatusPage'
+import { TxPage } from './pages/TxPage'
+import { customRpc, setCustomRpc, useSettingsVersion } from './settings'
 
-function App() {
-  const [count, setCount] = useState(0)
+function useRoute(): string[] {
+  const parse = () => location.hash.replace(/^#\/?/, '').split('/').filter(Boolean)
+  const [route, setRoute] = useState(parse)
+  useEffect(() => {
+    const on = () => setRoute(parse())
+    window.addEventListener('hashchange', on)
+    return () => window.removeEventListener('hashchange', on)
+  }, [])
+  return route
+}
+
+const TABS = [
+  ['status', 'Mainnet status'],
+  ['tx', 'Transaction'],
+  ['handles', 'Handles'],
+] as const
+
+export default function App() {
+  const [page = 'status', ...params] = useRoute()
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    <div className="shell">
+      <header className="top">
+        <a className="brand" href="#/">
+          <img src="/favicon.svg" width={22} height={22} alt="" />
+          FHE Lens <small>CoFHE inspector</small>
+        </a>
+        <nav className="tabs">
+          {TABS.map(([key, label]) => (
+            <a key={key} href={`#/${key}`} aria-current={page === key ? 'page' : undefined}>
+              {label}
+            </a>
+          ))}
+        </nav>
+      </header>
+      <main>{page === 'tx' ? <TxPage params={params} /> : page === 'handles' ? <HandlesPage key={params.join('/')} params={params} /> : <StatusPage />}</main>
+      <footer className="stack tight">
+        <Settings />
+        <span>
+          FHE Lens is unofficial and not affiliated with Fhenix. It runs entirely in your browser and only reads public chain data through the RPC endpoints below. Op semantics follow TFHE-rs, the library behind CoFHE's FHE engine.
+        </span>
+      </footer>
+    </div>
   )
 }
 
-export default App
+function Settings() {
+  useSettingsVersion()
+  return (
+    <details>
+      <summary>RPC endpoints</summary>
+      <p className="small">Defaults are keyless public endpoints chosen for browser access and log history. Set your own to avoid rate limits; it is stored only in this browser.</p>
+      <div className="stack tight">
+        {CHAINS.map((c) => (
+          <label key={c.id} className="row small">
+            <span style={{ width: 130 }}>{c.name}</span>
+            <input
+              className="grow mono"
+              defaultValue={customRpc(c) ?? ''}
+              placeholder={`${c.rpc} (logs: ${c.logRpcs[0]})`}
+              onBlur={(e) => setCustomRpc(c, e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && setCustomRpc(c, e.currentTarget.value)}
+              spellCheck={false}
+            />
+          </label>
+        ))}
+      </div>
+    </details>
+  )
+}
