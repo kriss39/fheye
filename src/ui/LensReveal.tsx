@@ -48,14 +48,19 @@ export function LensReveal() {
 
   useEffect(() => {
     const el = stage.current!
-    let anchors: Array<[number, number]> = []
+    let alive = true
+    let anchors: Array<[number, number]> = [[0, 0]]
+    // Also runs once fonts load, which can be after the page has moved on.
     const measure = () => {
+      if (!alive) return
       const s = el.getBoundingClientRect()
       el.style.setProperty('--lr', `${Math.round(Math.max(68, Math.min(104, s.width * 0.165)))}px`)
-      anchors = cards.current.map((c) => {
-        const r = c!.getBoundingClientRect()
-        return [r.left - s.left + r.width / 2, r.top - s.top + r.height / 2]
+      const found = cards.current.flatMap((c): Array<[number, number]> => {
+        if (!c) return []
+        const r = c.getBoundingClientRect()
+        return [[r.left - s.left + r.width / 2, r.top - s.top + r.height / 2]]
       })
+      if (found.length) anchors = found
     }
     measure()
     const ro = new ResizeObserver(measure)
@@ -69,7 +74,11 @@ export function LensReveal() {
       el.style.setProperty('--ly', `${y}px`)
     }
     place()
-    if (reducedMotion() || !visible) return () => ro.disconnect()
+    const stop = () => {
+      alive = false
+      ro.disconnect()
+    }
+    if (reducedMotion() || !visible) return stop
 
     let raf = 0
     let target = 0
@@ -94,7 +103,7 @@ export function LensReveal() {
     raf = requestAnimationFrame(loop)
     return () => {
       cancelAnimationFrame(raf)
-      ro.disconnect()
+      stop()
     }
   }, [visible])
 
