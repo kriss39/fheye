@@ -1,4 +1,4 @@
-// Prints recent CoFHE activity for each chain (M1 testnet view).
+// Prints recent CoFHE activity for each chain.
 import { CHAINS } from '../src/chains'
 import { makeClients } from '../src/client'
 import { recentActivity } from '../src/mainnet/activity'

@@ -2,6 +2,7 @@
 // per-chain steps. No date is shown (none is confirmed); everything switches to "live" on its own
 // once a mainnet TaskManager reports isEnabled.
 
+import { useEffect } from 'react'
 import type { PublicClient } from 'viem'
 import { taskManagerAbi } from '../abi'
 import { CHAINS, type LensChain } from '../chains'
@@ -19,7 +20,9 @@ let shared: { key: string; at: number; promise: Promise<LensChain[]> } | null = 
 function readLive(key: string, clients: PublicClient[]): Promise<LensChain[]> {
   if (!shared || shared.key !== key || Date.now() - shared.at > 60_000) {
     const promise = Promise.all(MAINNETS.map((c, i) => clients[i].readContract({ address: c.taskManager, abi: taskManagerAbi, functionName: 'isEnabled' }))).then((on) => MAINNETS.filter((_, i) => on[i]))
-    promise.catch(() => (shared = null))
+    promise.catch(() => {
+      if (shared?.promise === promise) shared = null
+    })
     shared = { key, at: Date.now(), promise }
   }
   return shared.promise
@@ -31,10 +34,16 @@ function useLiveChains(): LensChain[] | null {
   const arb = useClients(MAINNETS[1]).client
   const key = `launch:${MAINNETS.map((c) => customRpc(c) ?? '').join(',')}`
   const state = useAsync(key, () => readLive(key, [eth, arb]))
+  const { reload, loading } = state
+  useEffect(() => {
+    if (loading) return
+    const id = setTimeout(reload, 60_000)
+    return () => clearTimeout(id)
+  }, [loading, reload])
   return state.data ?? null
 }
 
-/** Next to the Mainnet tab: days to the launch, or LIVE. */
+/** Next to the Mainnet tab: "soon", or LIVE. */
 export function MainnetBadge() {
   const live = useLiveChains()
   if (live && live.length > 0)

@@ -2,6 +2,7 @@
 
 import type { Hash } from 'viem'
 import { makeClients } from '../src/client'
+import { toHex32 } from '../src/handle/decode'
 import { explainTx } from '../src/leak/explain'
 import { findTxChain, loadTx } from '../src/tx/load'
 import { summarizeTx } from '../cli/tx'
@@ -18,6 +19,9 @@ export function GET(request: Request) {
     if (!chain) return json({ error: 'No supported network knows this transaction.' }, 404, 60)
     const t = await loadTx(chain, hash as Hash, makeClients(chain).client)
     // A mined transaction never changes; ACL and decrypt status can, so cache for an hour.
-    return json({ verdict: explainTx(t.graph, t.leaks, t.status), ...summarizeTx(t), url: `${SITE}/#/tx/${chain.key}/${hash}` }, 200, 3600)
+    const v = explainTx(t.graph, t.leaks, t.status)
+    // Handles are 32-byte hex everywhere in the API.
+    const verdict = v.equation ? { ...v, equation: { ...v.equation, handle: toHex32(v.equation.handle) } } : v
+    return json({ verdict, ...summarizeTx(t), url: `${SITE}/#/tx/${chain.key}/${hash}` }, 200, 3600)
   }, request)
 }

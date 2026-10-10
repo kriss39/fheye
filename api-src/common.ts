@@ -65,7 +65,7 @@ export async function handle(fn: () => Promise<Response>, request?: Request): Pr
     return await fn()
   } catch (e) {
     if (e instanceof BadRequest) return json({ error: e.message }, 400)
-    const message = errorText(e)
-    return json({ error: message }, /not found/i.test(message) ? 404 : 502)
+    const notFound = (e as { name?: string }).name === 'TransactionReceiptNotFoundError' || (e as { name?: string }).name === 'TransactionNotFoundError'
+    return json({ error: errorText(e) }, notFound ? 404 : 502)
   }
 }

@@ -1,5 +1,5 @@
-// Networks FHEye can read. TaskManager addresses are resolved through the CoFHE address
-// book at runtime; the ones here are fallbacks and a sanity check.
+// Networks FHEye can read. The TaskManager addresses are fixed here; on every chain the CoFHE
+// address book (ADDRESS_BOOK) resolves to the same contracts (checked by spike/address-book.ts).
 //
 // Default endpoints were picked by probing keyless public RPCs (2026-10-10) for browser CORS,
 // log history depth and eth_getLogs span limits. `rpc` serves latest-state calls and receipts,

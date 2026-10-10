@@ -24,7 +24,8 @@ const WINDOWS: Array<[string, number]> = [
 export function ContractPage({ params }: { params: string[] }) {
   const [chainKey, address, win] = params
   const chain = CHAINS.find((c) => c.key === chainKey)
-  const seconds = Number(win) || 21600
+  // Links can carry any window; the scan is capped at the largest one offered.
+  const seconds = Math.min(Number(win) || 21600, 86400)
   return (
     <div className="stack">
       <div>
@@ -119,7 +120,7 @@ function ReportForm({ chainKey, address, seconds }: { chainKey: string; address:
 function phaseText(p: ReportPhase | null): string {
   if (!p) return 'Starting…'
   if (p.phase === 'scan') return `Reading TaskManager events in the window (${fmt(p.logs)} so far)…`
-  if (p.phase === 'match') return `Finding this contract's transactions (${fmt(p.done)} of ${fmt(p.total)} checked)…`
+  if (p.phase === 'match') return `Finding this address's transactions, newest first (${fmt(p.done)} of up to ${fmt(p.total)} checked)…`
   return `Analysing transactions (${p.done} of ${p.total})…`
 }
 
@@ -144,7 +145,16 @@ function Report({ chain, address, seconds }: { chain: LensChain; address: Addres
     return (
       <section className="card">
         <p className="muted" style={{ margin: 0 }}>
-          No FHE transaction targeting <Addr chain={chain} address={address} /> in the {fmt(r.checkedTxs)} most recent of {fmt(r.windowTxs)} FHE transactions on {chain.name} in this window. Try a longer window.
+          {r.wallet ? (
+            <>
+              <Addr chain={chain} address={address} /> is a wallet, not a contract, so FHEye looked for encrypted transactions it <b>sent</b>. None were found
+            </>
+          ) : (
+            <>
+              No FHE transaction called <Addr chain={chain} address={address} />
+            </>
+          )}{' '}
+          among the {fmt(r.checkedTxs)} most recent of {fmt(r.windowTxs)} FHE transactions on {chain.name} in this window. Try a longer window, or check the network.
         </p>
       </section>
     )
@@ -159,7 +169,7 @@ function Report({ chain, address, seconds }: { chain: LensChain; address: Addres
       <section className="card stack tight">
         <div className="card-head">
           <h2>
-            <Addr chain={chain} address={address} /> <span className="muted small">on {chain.name}</span>
+            <Addr chain={chain} address={address} /> <span className="muted small">{r.wallet ? 'wallet ' : ''}on {chain.name}</span>
           </h2>
           <Copy text={location.href} label="Copy report link" className="sm" />
         </div>
@@ -182,8 +192,8 @@ function Report({ chain, address, seconds }: { chain: LensChain; address: Addres
           <Stat label="FHE tasks" value={fmt(t.tasks)} />
         </div>
         <span className="muted small">
-          {fmt(r.analysed.length)} most recent of {fmt(r.matchedTxs)} transactions to this contract in blocks {fmt(r.fromBlock)}–{fmt(r.toBlock)}
-          {r.checkedTxs < r.windowTxs ? ` (searched the ${fmt(r.checkedTxs)} newest of ${fmt(r.windowTxs)} FHE transactions)` : ''}.
+          The {fmt(r.analysed.length)} most recent {r.wallet ? 'transactions this wallet sent' : 'transactions to this contract'} in blocks {fmt(r.fromBlock)}–{fmt(r.toBlock)}
+          {r.checkedTxs < r.windowTxs ? `, found among the ${fmt(r.checkedTxs)} newest of ${fmt(r.windowTxs)} FHE transactions` : ''}.
         </span>
         {t.publicViaEarlier > 0 && (
           <span className="small">

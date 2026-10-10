@@ -35,11 +35,13 @@ export interface ContractReport {
   address: Address
   fromBlock: bigint
   toBlock: bigint
-  /** FHE txs in the window whose target was checked. */
+  /** The address has no code: the report covers the transactions it sent. */
+  wallet: boolean
+  /** FHE txs in the window whose sender and target were looked up (newest first). */
   checkedTxs: number
   /** FHE txs in the window, all contracts. */
   windowTxs: number
-  /** Txs targeting the contract (may exceed analysed). */
+  /** Txs to the contract (or from the wallet) found; the search stops once it has enough. */
   matchedTxs: number
   analysed: TxSummary[]
   byOp: Record<string, number>
@@ -145,20 +147,32 @@ export async function contractReport(
   const blockOf = new Map<Hash, bigint>()
   for (const l of logs) if (l.topics[0] === TASK_CREATED_TOPIC) blockOf.set(l.transactionHash!, l.blockNumber!)
 
-  // Newest first, so the analysed sample is the contract's latest behaviour.
-  const candidates = [...blockOf].sort((a, b) => Number(b[1] - a[1])).slice(0, opts.maxLookups ?? 800)
+  // A wallet doesn't receive calls; for one, the report covers what it sent.
+  const code = await client.getCode({ address }).catch(() => undefined)
+  const wallet = code === undefined || code === '0x'
+
+  // TaskCreated doesn't name the caller, so look transactions up newest first, in chunks, and stop
+  // once there are enough: a busy contract is found in the first chunk, a quiet one keeps going.
+  const candidates = [...blockOf].sort((a, b) => Number(b[1] - a[1])).slice(0, opts.maxLookups ?? 4000)
+  const matched: Hash[] = []
   let checked = 0
-  const targets = await pool(
-    candidates,
-    8,
-    async ([hash]) => {
-      const tx = await client.getTransaction({ hash }).catch(() => null)
-      opts.onPhase?.({ phase: 'match', done: ++checked, total: candidates.length })
-      return tx?.to ?? null
-    },
-    opts.signal,
-  )
-  const matched = candidates.filter((_, i) => targets[i] && isAddressEqual(targets[i]!, address)).map(([hash]) => hash)
+  for (let i = 0; i < candidates.length && matched.length < maxTxs; i += 200) {
+    const chunk = candidates.slice(i, i + 200)
+    const txs = await pool(
+      chunk,
+      8,
+      async ([hash]) => {
+        const tx = await client.getTransaction({ hash }).catch(() => null)
+        opts.onPhase?.({ phase: 'match', done: ++checked, total: candidates.length })
+        return tx
+      },
+      opts.signal,
+    )
+    chunk.forEach(([hash], j) => {
+      const who = wallet ? txs[j]?.from : txs[j]?.to
+      if (who && isAddressEqual(who, address)) matched.push(hash)
+    })
+  }
 
   let analysedCount = 0
   const sample = matched.slice(0, maxTxs)
@@ -210,7 +224,8 @@ export async function contractReport(
     address,
     fromBlock,
     toBlock,
-    checkedTxs: candidates.length,
+    wallet,
+    checkedTxs: checked,
     windowTxs: blockOf.size,
     matchedTxs: matched.length,
     analysed,

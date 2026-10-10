@@ -153,6 +153,7 @@ describe('contract', () => {
     address: TO,
     fromBlock: 100n,
     toBlock: 400n,
+    wallet: false,
     checkedTxs: 10,
     windowTxs: 10,
     matchedTxs: 2,
@@ -178,7 +179,8 @@ describe('contract', () => {
   it('passes when nothing is public, and says when no tx matched', () => {
     const clean = { ...base, totals: { ...base.totals, publicComputed: 0, publicViaEarlier: 0 } }
     expect(contractHasPublic(clean)).toBe(false)
-    expect(formatContract({ ...base, analysed: [], matchedTxs: 0 }, chainById(11155111))).toContain('No FHE transaction targeting this contract')
+    expect(formatContract({ ...base, analysed: [], matchedTxs: 0 }, chainById(11155111))).toContain('No FHE transaction called this contract')
+    expect(formatContract({ ...base, wallet: true, analysed: [], matchedTxs: 0 }, chainById(11155111))).toContain('This address is a wallet, not a contract')
   })
 })
 

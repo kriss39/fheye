@@ -31,14 +31,16 @@ function Verdict({ r }: { r: RadarRow }) {
 function Feed({ chain }: { chain: LensChain }) {
   const { client, logClient } = useClients(chain)
   const state = useAsync(`radar:${chain.id}:${customRpc(chain) ?? ''}`, (signal) => loadRadar(client, logClient, chain, { seconds: WINDOW, signal }))
-  const { reload } = state
+  const { reload, loading } = state
   const seen = useRef<Set<string> | null>(null)
   const [fresh, setFresh] = useState<Set<string>>(new Set())
 
+  // Wait for a load to finish before scheduling the next, so a slow RPC is never interrupted.
   useEffect(() => {
-    const id = setInterval(reload, REFRESH)
-    return () => clearInterval(id)
-  }, [reload])
+    if (loading) return
+    const id = setTimeout(reload, REFRESH)
+    return () => clearTimeout(id)
+  }, [loading, reload])
 
   // Rows that weren't there on the previous refresh slide in.
   const data = state.data

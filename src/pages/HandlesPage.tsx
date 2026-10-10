@@ -1,4 +1,4 @@
-// M2 + M4: decode pasted handles offline, then optionally ask a chain about each one.
+// Decode pasted handles offline, then optionally ask a chain about each one.
 
 import { useMemo, useState } from 'react'
 import { isAddress, type Address } from 'viem'
@@ -20,8 +20,17 @@ const EXAMPLE = [
 
 const MAX_LOOKUPS = 50
 
+// Links can carry anything after #/handles/; a malformed escape must not take the page down.
+function safeDecode(s: string): string {
+  try {
+    return decodeURIComponent(s)
+  } catch {
+    return s
+  }
+}
+
 export function HandlesPage({ params }: { params: string[] }) {
-  const [text, setText] = useState(params[0] ? decodeURIComponent(params[0]).replace(/,/g, '\n') : '')
+  const [text, setText] = useState(() => (params[0] ? safeDecode(params[0]).replace(/,/g, '\n') : ''))
   const [chainId, setChainId] = useState(11155111)
   const [who, setWho] = useState('')
   const chain = chainById(chainId)

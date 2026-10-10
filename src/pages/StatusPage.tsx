@@ -1,6 +1,6 @@
-// M1: mainnet TaskManager status (Ethereum + Arbitrum One) and recent activity on any network.
+// Mainnet TaskManager status (Ethereum + Arbitrum One) and recent activity on any network.
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CHAINS, chainById, type LensChain } from '../chains'
 import { attributeTasks, recentActivity } from '../mainnet/activity'
 import { deserializeHistory, foldAdmin, readFlags, scanHistory, serializeHistory, verifyAccessList, type TmEvent } from '../mainnet/status'
@@ -35,6 +35,13 @@ function MainnetCard({ chain }: { chain: LensChain }) {
     return { flags, history, admin: { ...admin, accessList }, callers }
   })
   const d = state.data
+  const { reload, loading } = state
+  // Keep watching: the launch steps should turn green without a refresh.
+  useEffect(() => {
+    if (loading) return
+    const id = setTimeout(reload, 120_000)
+    return () => clearTimeout(id)
+  }, [loading, reload])
 
   return (
     <section className="card stack tight">

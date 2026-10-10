@@ -214,7 +214,7 @@ async function dispatch(command: Command, values: Values, positionals: string[],
       if (!isAddress(address, { strict: false })) throw new UsageError('That is not a contract address.')
       if (!chain) throw new UsageError('contract needs --chain.')
       const hours = values.hours === undefined ? 1 : Number(values.hours)
-      if (!Number.isFinite(hours) || hours <= 0) throw new UsageError('--hours must be a positive number.')
+      if (!Number.isFinite(hours) || hours <= 0 || hours > 24) throw new UsageError('--hours must be between 0 and 24.')
       const seconds = Math.round(hours * 3600)
       const { client, logClient } = makeClients(chain, rpc)
       const report = await contractReport(client, logClient, chain, address as Address, { seconds, onPhase: (ph) => p.update(phaseText(ph)) })
@@ -292,11 +292,12 @@ async function dispatch(command: Command, values: Values, positionals: string[],
       p.clear()
       const sinks = sinksFrom(io.env)
       const quiet = values['dry-run'] || (!sinks.discord && !sinks.telegram)
-      if (messages.length && !quiet) await post(sinks, messages)
+      const failures = messages.length && !quiet ? await post(sinks, messages) : []
       writeFileSync(file, JSON.stringify(state))
       if (!messages.length) print('Nothing new on the mainnet TaskManagers.')
       else print(`${quiet ? 'Would post' : 'Posted'}:\n\n${messages.join('\n\n')}`)
-      return 0
+      for (const f of failures) io.stderr.write(`fheye: could not post to ${f}\n`)
+      return failures.length ? 2 : 0
     }
   }
 }

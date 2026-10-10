@@ -1,4 +1,4 @@
-// M3 + M5: one transaction's FHE task graph, per-handle access status, gas estimate and the
+// One transaction's FHE task graph, per-handle access status, gas estimate and the
 // values that look encrypted but can be recomputed from public data.
 
 import { useEffect, useState, type FormEvent } from 'react'

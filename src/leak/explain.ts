@@ -3,6 +3,7 @@
 // task table below it carry the technical detail.
 
 import type { HandleStatus } from '../acl/check'
+import { decodeHandle } from '../handle/decode'
 import type { TxGraph } from '../tx/graph'
 import type { Known, LeakReport } from './evaluate'
 import { ASSUMPTION_TEXT } from './ops'
@@ -48,7 +49,8 @@ function listText(items: string[]): string {
 
 export function explainTx(graph: TxGraph, leaks: LeakReport, status: Map<bigint, HandleStatus> = new Map()): Verdict {
   const { known } = leaks
-  const typeOf = (h: bigint) => graph.byHandle.get(h)?.output.typeName ?? null
+  // The handle carries its own type, also for values produced in other transactions.
+  const typeOf = (h: bigint) => decodeHandle(h).typeName
   const computed = graph.tasks.filter((t) => t.op?.kind !== 'trivial' && t.op?.kind !== 'random')
   const exposed = computed.filter((t) => isLeak(known.get(t.ctHash)))
   const trivials = graph.tasks.filter((t) => t.op?.kind === 'trivial')
@@ -71,7 +73,7 @@ export function explainTx(graph: TxGraph, leaks: LeakReport, status: Map<bigint,
       kind: 'private',
       headline: 'Nothing here can be worked out from public data',
       detail: 'No computed value in this transaction can be derived from public data alone.',
-      explanation: 'Every computed value depends on something encrypted: a user input, randomness, or an encrypted value from an earlier transaction. That does not prove the contract is private, only that FHEye found no shortcut in this transaction.',
+      explanation: 'No computed value could be worked out from public data: they depend on something encrypted, such as a user input, randomness or an encrypted value from an earlier transaction. That does not prove the contract is private, only that FHEye found no shortcut in this transaction.',
       notes,
     }
   }
@@ -104,18 +106,26 @@ export function explainTx(graph: TxGraph, leaks: LeakReport, status: Map<bigint,
             ? [ins[0], `as ${lead.output.typeName ?? 'type'}`]
             : [`${op}(`, ...ins.flatMap((c, i) => (i ? [',', c] : [c])), ')']
 
-  const leafValues = (source: Known['source']) => [
-    ...new Set(k.leaves.filter((h) => known.get(h)?.source === source).map((h) => valueText(known.get(h)!.value, typeOf(h) ?? lead.output.typeName))),
+  const leafValues = (source: Known['source'], here?: boolean) => [
+    ...new Set(
+      k.leaves
+        .filter((h) => known.get(h)?.source === source && (here === undefined || graph.byHandle.has(h) === here))
+        .map((h) => valueText(known.get(h)!.value, typeOf(h) ?? lead.output.typeName)),
+    ),
   ]
+  const short = (xs: string[]) => listText(xs.length > 4 ? [...xs.slice(0, 3), 'others'] : xs)
   const constants = leafValues('trivial')
+  const constantsHere = leafValues('trivial', true)
+  const constantsEarlier = leafValues('trivial', false)
   const published = leafValues('published')
   const sources = [
-    constants.length ? `the plain ${plural(constants.length, 'number')} ${listText(constants.length > 4 ? [...constants.slice(0, 3), 'others'] : constants)} written into the transaction` : '',
+    constantsHere.length ? `the plain ${plural(constantsHere.length, 'number')} ${short(constantsHere)} written into this transaction` : '',
+    constantsEarlier.length ? `the plain ${plural(constantsEarlier.length, 'number')} ${short(constantsEarlier)} written into an earlier transaction` : '',
     published.length ? `${plural(published.length, 'a value that was', 'values that were')} already decrypted publicly (${listText(published)})` : '',
   ].filter(Boolean)
 
   const explanation =
-    k.source === 'identity'
+    k.source === 'identity' || sources.length === 0
       ? `This ${op} gives ${result.value} whatever the encrypted inputs are, so anyone knows the result without decrypting anything.`
       : `This value is computed only from ${listText(sources)}. The result is stored encrypted, but anyone who reads the chain can repeat the math: it's ${result.value}.`
 
@@ -123,7 +133,7 @@ export function explainTx(graph: TxGraph, leaks: LeakReport, status: Map<bigint,
   const asFn = AS_FN[(lastConstant !== undefined && typeOf(lastConstant)) || lead.output.typeName || ''] ?? 'asEuint64'
   const code = lastConstant !== undefined ? `FHE.${asFn}(${known.get(lastConstant)!.value})` : ''
   const advice =
-    k.source === 'identity'
+    k.source === 'identity' || sources.length === 0
       ? 'This operation returns the same result for any input, so it hides nothing. Check the contract logic.'
       : constants.length
         ? `Fine if ${result.value} is meant to be public. If it should stay secret, don't build it from plain numbers such as ${code}: let the user encrypt the value with the CoFHE SDK and pass it in as an encrypted input.`

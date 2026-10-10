@@ -2,7 +2,7 @@
 
 A client-side inspector for [Fhenix CoFHE](https://cofhe-docs.fhenix.zone), in the browser or on the [command line](#command-line). Paste a transaction and see every FHE task it created, how encrypted values flow between them, who may use each handle, and which values look encrypted but can be computed by anyone.
 
-> Unofficial. Not affiliated with Fhenix. FHEye only reads public chain data; it never sends transactions or asks for a wallet.
+> Unofficial. Not affiliated with Fhenix. FHEye only reads public chain data; it never sends transactions or asks for a wallet. The one exception is an optional, click-to-run check that asks the CoFHE threshold network to decrypt a value the contract made readable by anyone.
 
 **Live: [fheye.vercel.app](https://fheye.vercel.app)** · [Docs](https://fheye.vercel.app/#/docs) · [API](https://fheye.vercel.app/api)
 
@@ -54,7 +54,7 @@ Values are recomputed with the semantics of [TFHE-rs](https://github.com/zama-ai
 | `rem(x, 0)` | `x` | TFHE-rs docs |
 | `shl/shr/rol/ror` by ≥ bit width | amount taken modulo the width | TFHE-rs ≤ 1.6; 1.7+ returns 0 for shifts on overshift |
 
-When a derived value can be checked against a decrypt result published on-chain, the UI shows whether they match. For handles marked decryptable by anyone (`allowGlobal`), you can also ask the CoFHE threshold network for the value: FHEye sends the same request as `@cofhe/sdk`'s `decryptForTx().withoutACP()` and checks the returned signature against the TaskManager's `decryptResultSigner`, so the value doesn't have to be trusted. If a published or network result ever contradicts FHEye, the chain wins and every value that relied on the same assumption is dropped.
+When a derived value can be checked against a decrypt result published on-chain, the UI shows whether they match. For handles marked decryptable by anyone (`allowGlobal`), you can also ask the CoFHE threshold network for the value: FHEye sends the same request as `@cofhe/sdk`'s `decryptForTx().withoutACP()` and checks the returned signature against the TaskManager's `decryptResultSigner`, so the value doesn't have to be trusted. If a decrypt result published on-chain contradicts FHEye, the chain wins and every value that relied on the same assumption is dropped; a network answer that differs is shown as such.
 
 **What this does not tell you.** Nothing is said about values derived from encrypted user inputs or randomness, and side channels (gas, control flow, timing) are out of scope. A handle that isn't marked is not proven private; it just isn't provably public.
 
@@ -89,7 +89,7 @@ npm run e2e        # smoke test in headless Chrome against live testnets
 npm run build      # static site in dist/
 ```
 
-Stack: Vite, React, TypeScript, [viem](https://viem.sh). No backend.
+Stack: Vite, React, TypeScript, [viem](https://viem.sh). The site is static and works without a backend; the optional read-only API lives in `api-src/`. Fonts: Inter and Space Grotesk (SIL OFL 1.1, via Fontsource).
 
 The `spike/` folder holds the scripts used to validate the approach against live networks (handle derivation on real events, RPC limits, ACL reads, mainnet status, leak recomputation against published decrypts). Run any of them with `npx tsx spike/<name>.ts`.
 
@@ -104,13 +104,13 @@ Read-only JSON over HTTP, with open CORS and edge caching:
 | `GET /api/mainnet` | Live state of both mainnet TaskManagers: intake, access list, allowlisted callers, task counts. |
 | `GET /api` | This list. |
 
-Bigints are decimal strings and handles are 32-byte hex. Each client gets up to 30 uncached requests a minute (HTTP 429 with Retry-After beyond that). The functions live in `api-src/` and are bundled into `api/` by `npm run build:api` before a deploy.
+Bigints are decimal strings and handles are 32-byte hex. Each client gets about 30 uncached requests a minute (best effort, per function instance; HTTP 429 with Retry-After beyond that). The functions live in `api-src/` and are bundled into `api/` by `npm run build:api` before a deploy.
 
 ## Launch bot
 
 `fheye watch --state <file>` compares the mainnet TaskManagers with its last run and posts what changed (a contract allowed or removed, intake switched on or off, the access list opened, the first encrypted operations with FHEye's verdict) to `DISCORD_WEBHOOK_URL` and/or `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID`. The first run only records the state; `--dry-run` prints instead of posting.
 
-`.github/workflows/launch-watch.yml` runs it every 10 minutes once the repository variable `WATCH_ENABLED` is `true` and one of those secrets is set; until then the job is skipped.
+`.github/workflows/launch-watch.yml` runs it every 10 minutes once the repository variable `WATCH_ENABLED` is `true` (until then the job is skipped); without the secrets it only prints what it would post.
 
 ## Command line
 

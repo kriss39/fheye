@@ -28,6 +28,18 @@ describe('launchMessages', () => {
 })
 
 describe('posting', () => {
+  it('keeps delivering to other sinks when one fails, and reports the failure', async () => {
+    const sent: string[] = []
+    const fake = (async (url: string) => {
+      if (url.includes('discord')) return new Response('nope', { status: 500 })
+      sent.push(url)
+      return new Response('ok')
+    }) as unknown as typeof fetch
+    const failures = await post(sinksFrom({ DISCORD_WEBHOOK_URL: 'https://discord.com/api/webhooks/1/x', TELEGRAM_BOT_TOKEN: 't', TELEGRAM_CHAT_ID: '42' }), ['hi'], fake)
+    expect(failures).toEqual(['Discord: discord.com answered 500: nope'])
+    expect(sent).toEqual(['https://api.telegram.org/bott/sendMessage'])
+  })
+
   it('splits long batches under the limit', () => {
     expect(chunkMessages(['a'.repeat(60), 'b'.repeat(60), 'c'], 100)).toEqual(['a'.repeat(60), `${'b'.repeat(60)}\n\nc`])
   })
@@ -39,7 +51,7 @@ describe('posting', () => {
       return new Response('ok')
     }) as unknown as typeof fetch
     const sinks = sinksFrom({ DISCORD_WEBHOOK_URL: 'https://discord.com/api/webhooks/1/x', TELEGRAM_BOT_TOKEN: 't', TELEGRAM_CHAT_ID: '42' })
-    await post(sinks, ['hello'], fake)
+    expect(await post(sinks, ['hello'], fake)).toEqual([])
     expect(calls).toEqual([
       ['https://discord.com/api/webhooks/1/x', { content: 'hello', allowed_mentions: { parse: [] } }],
       ['https://api.telegram.org/bott/sendMessage', { chat_id: '42', text: 'hello', disable_web_page_preview: true }],

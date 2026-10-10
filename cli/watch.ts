@@ -72,11 +72,25 @@ export function sinksFrom(env: Record<string, string | undefined>): Sinks {
   }
 }
 
-export async function post(sinks: Sinks, messages: string[], fetchImpl: typeof fetch = fetch): Promise<void> {
+/**
+ * Posts to every configured sink and returns the failures. One sink failing doesn't stop the
+ * others, and the caller saves its state either way, so a broken sink never makes the next run
+ * repost what the working ones already delivered.
+ */
+export async function post(sinks: Sinks, messages: string[], fetchImpl: typeof fetch = fetch): Promise<string[]> {
   const send = async (url: string, body: unknown) => {
     const r = await fetchImpl(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
     if (!r.ok) throw new Error(`${new URL(url).host} answered ${r.status}: ${(await r.text()).slice(0, 200)}`)
   }
-  for (const text of sinks.discord ? chunkMessages(messages, 1900) : []) await send(sinks.discord!, { content: text, allowed_mentions: { parse: [] } })
-  for (const text of sinks.telegram ? chunkMessages(messages, 4000) : []) await send(`https://api.telegram.org/bot${sinks.telegram!.token}/sendMessage`, { chat_id: sinks.telegram!.chat, text, disable_web_page_preview: true })
+  const failures: string[] = []
+  const deliver = async (name: string, posts: string[], toBody: (text: string) => [string, unknown]) => {
+    try {
+      for (const text of posts) await send(...toBody(text))
+    } catch (e) {
+      failures.push(`${name}: ${(e as Error).message}`)
+    }
+  }
+  if (sinks.discord) await deliver('Discord', chunkMessages(messages, 1900), (text) => [sinks.discord!, { content: text, allowed_mentions: { parse: [] } }])
+  if (sinks.telegram) await deliver('Telegram', chunkMessages(messages, 4000), (text) => [`https://api.telegram.org/bot${sinks.telegram!.token}/sendMessage`, { chat_id: sinks.telegram!.chat, text, disable_web_page_preview: true }])
+  return failures
 }

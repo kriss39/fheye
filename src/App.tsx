@@ -8,6 +8,7 @@ import { TxPage } from './pages/TxPage'
 import { customRpc, setCustomRpc, useSettingsVersion } from './settings'
 import { BookIcon, GitHubIcon, GraphIcon, HashIcon, MailIcon, PulseIcon, RadarIcon, ReportIcon } from './ui/icons'
 import { DocsPage } from './pages/DocsPage'
+import { ErrorBoundary } from './ui/ErrorBoundary'
 import { UniversalSearch } from './ui/UniversalSearch'
 import { RadarPage } from './pages/RadarPage'
 import { LaunchBar, MainnetBadge } from './ui/Launch'
@@ -63,6 +64,7 @@ export default function App() {
       {!known && <Hero />}
       <div className="shell">
         <main>
+          <ErrorBoundary key={page + params.join('/')}>
           {page === 'docs' ? (
             <DocsPage key={params.join('/')} params={params} />
           ) : page === 'radar' ? (
@@ -78,6 +80,7 @@ export default function App() {
           ) : (
             <HomePage />
           )}
+          </ErrorBoundary>
         </main>
         <footer className="stack tight">
           <div className="footer-top">
@@ -111,7 +114,7 @@ export default function App() {
           </div>
           <Settings />
           <span>
-            FHEye is unofficial and not affiliated with Fhenix. It runs entirely in your browser and only reads public chain data through the RPC endpoints below. Op semantics follow TFHE-rs, the library behind CoFHE's FHE engine.
+            FHEye is unofficial and not affiliated with Fhenix. It runs in your browser and reads public chain data through the RPC endpoints below; the optional “Check it with the CoFHE network” button also asks Fhenix's threshold network to decrypt a value anyone may decrypt. Op semantics follow TFHE-rs, the library behind CoFHE's FHE engine.
           </span>
         </footer>
       </div>

@@ -81,9 +81,9 @@ const API_EXAMPLE = `curl https://fheye.vercel.app/api/tx/0x5fc67cd8d581d33a6ce2
 const CLI = `git clone https://github.com/kriss39/fheye && cd fheye
 npm ci && npm run build:cli
 
-node dist-cli/fheye.mjs tx 0x7d8e…53bb            # one transaction
-node dist-cli/fheye.mjs contract 0x87a3…d55a --chain sepolia --hours 6
-node dist-cli/fheye.mjs handle 0x76c4…0500 --chain sepolia
+node dist-cli/fheye.mjs tx 0x7d8e313f60bff6680df9d5db638f265fa1d9bbf5dee34dc4eede8cb0721753bb
+node dist-cli/fheye.mjs contract 0x87a3effb84cbe1e4cab6ab430139ec41d156d55a --chain sepolia --hours 6
+node dist-cli/fheye.mjs handle 0x76c4c176dc23fd580abc40e3e30f30ee9c466e4b6adc6fbdc7c45425f1a50500 --chain sepolia
 node dist-cli/fheye.mjs status                     # mainnet TaskManagers`
 
 const CI = `- name: Check for public values
@@ -176,7 +176,7 @@ export function DocsPage({ params }: { params: string[] }) {
               <span className="badge exposed">Looks encrypted, but anyone can work it out</span> At least one computed value can be recomputed from public data.
             </li>
             <li>
-              <span className="badge private">Nothing here can be worked out from public data</span> Every computed value depends on something encrypted. Not a proof of privacy, but no shortcut was found.
+              <span className="badge private">Nothing here can be worked out from public data</span> No computed value could be worked out from public data. Not a proof of privacy, but no shortcut was found.
             </li>
             <li>
               <span className="badge neutral">No encrypted computation here</span> The transaction did not run FHE operations (it may only verify inputs or publish results).
@@ -224,6 +224,7 @@ export function DocsPage({ params }: { params: string[] }) {
             25%, <b>D</b> up to half, <b>F</b> more. Values are followed back through earlier transactions in the window, so a balance that started from a plain zero is caught in every later transaction that adds to it. Copy the report
             link to share it.
           </p>
+          <p>Paste a wallet instead of a contract and the report covers the encrypted transactions that wallet sent.</p>
         </Section>
 
         <Section id="handles" title="Handles">
@@ -279,7 +280,7 @@ export function DocsPage({ params }: { params: string[] }) {
               <b>Readable by anyone.</b> <code>allowGlobal</code> lets anyone decrypt a value. Use <code>FHE.allow(value, account)</code> unless the value is meant to be public.
             </li>
           </ul>
-          <p className="doc-note">Exact SDK calls change between versions; check the official CoFHE documentation for the release you use.</p>
+          <p className="doc-note">The examples follow cofhe-contracts and @cofhe/sdk as of October 2026. Exact calls change between versions; check the official CoFHE documentation for the release you use.</p>
         </Section>
 
         <Section id="api" title="API">

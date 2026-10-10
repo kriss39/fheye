@@ -15,7 +15,7 @@ export function contractJson(r: ContractReport, chain: LensChain, seconds: numbe
 
 export function phaseText(p: ReportPhase): string {
   if (p.phase === 'scan') return `Reading TaskManager events in the window (${fmt(p.logs)} so far)…`
-  if (p.phase === 'match') return `Finding this contract's transactions (${fmt(p.done)} of ${fmt(p.total)} checked)…`
+  if (p.phase === 'match') return `Finding this address's transactions, newest first (${fmt(p.done)} of up to ${fmt(p.total)} checked)…`
   return `Analysing transactions (${p.done} of ${p.total})…`
 }
 
@@ -23,13 +23,15 @@ export function formatContract(r: ContractReport, chain: LensChain, st: Style = 
   const t = r.totals
   const out: string[] = [`${st.bold(r.address)} on ${chain.name}, blocks ${fmt(r.fromBlock)}–${fmt(r.toBlock)}`]
   if (r.analysed.length === 0) {
-    out.push(`No FHE transaction targeting this contract in the ${fmt(r.checkedTxs)} most recent of ${fmt(r.windowTxs)} FHE transactions on ${chain.name} in this window. Try a longer window (--hours).`)
+    out.push(
+      `${r.wallet ? 'This address is a wallet, not a contract; no FHE transaction it sent was found' : 'No FHE transaction called this contract'} among the ${fmt(r.checkedTxs)} most recent of ${fmt(r.windowTxs)} FHE transactions on ${chain.name} in this window. Try a longer window (--hours).`,
+    )
     return out.join('\n')
   }
   out.push(
     st.dim(
-      `${fmt(r.analysed.length)} most recent of ${fmt(r.matchedTxs)} transactions to this contract` +
-        (r.checkedTxs < r.windowTxs ? ` (searched the ${fmt(r.checkedTxs)} newest of ${fmt(r.windowTxs)} FHE transactions)` : '') +
+      `${fmt(r.analysed.length)} most recent ${r.wallet ? 'transactions this wallet sent' : 'transactions to this contract'}` +
+        (r.checkedTxs < r.windowTxs ? `, found among the ${fmt(r.checkedTxs)} newest of ${fmt(r.windowTxs)} FHE transactions` : '') +
         '.',
     ),
   )

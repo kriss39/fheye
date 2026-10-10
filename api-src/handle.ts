@@ -12,11 +12,19 @@ const MAX = 20
 export function GET(request: Request) {
   return handle(async () => {
     const url = new URL(request.url)
-    const text = decodeURIComponent(url.searchParams.get('handle') ?? url.pathname.split('/').pop() ?? '')
+    let text = url.searchParams.get('handle') ?? ''
+    if (!text) {
+      try {
+        text = decodeURIComponent(url.pathname.split('/').pop() ?? '')
+      } catch {
+        throw new BadRequest('Malformed handle in the URL.')
+      }
+    }
     const rows = decodeMany(text.replace(/,/g, '\n'))
     const bad = rows.find((r) => 'error' in r)
     if (!rows.length || bad) throw new BadRequest(bad && 'error' in bad ? `${bad.token}: ${bad.error}` : 'Expected one or more handles.')
-    const handles = (rows as DecodedHandle[]).slice(0, MAX)
+    if (rows.length > MAX) throw new BadRequest(`Up to ${MAX} handles per request.`)
+    const handles = rows as DecodedHandle[]
     const chain = chainParam(url)
     let status: Map<bigint, HandleStatus> | undefined
     if (chain) {
