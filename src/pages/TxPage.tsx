@@ -70,6 +70,7 @@ function TxForm({ initialHash, initialChain }: { initialHash: string; initialCha
 }
 
 const EXAMPLES: Array<[string, string, string]> = [
+  ['base-sepolia', '0x5fc67cd8d581d33a6ce246d253d6bf9ec07b675f1068f1716a9c81a99e9962a3', 'first mint: an encrypted zero plus a public amount gives a balance anyone can compute'],
   ['sepolia', '0x7d8e313f60bff6680df9d5db638f265fa1d9bbf5dee34dc4eede8cb0721753bb', 'confidential transfer whose amount is a public constant'],
   ['sepolia', '0xc870ea914edbf425386f49fbc5e879ad9e4219312c3946cce0e6e73b46054a9e', 'running totals built from trivially encrypted values'],
   ['sepolia', '0x538d54bd2e959fee8620c7a5bbde3237ea77056b484e88ffe67837174a7874b5', 'arithmetic on two encrypted user inputs'],
@@ -78,7 +79,7 @@ const EXAMPLES: Array<[string, string, string]> = [
 function Examples() {
   return (
     <section className="card stack tight">
-      <h3>Try a Sepolia transaction</h3>
+      <h3>Try a testnet transaction</h3>
       {EXAMPLES.map(([key, hash, label]) => (
         <div key={hash} className="row small">
           <a className="mono" href={`#/tx/${key}/${hash}`}>

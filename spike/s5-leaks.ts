@@ -7,6 +7,7 @@ import { chainById } from '../src/chains'
 import { makeClients } from '../src/client'
 import { toHex32 } from '../src/handle/decode'
 import { analyzeLeaks } from '../src/leak/evaluate'
+import { lookupTrivial } from '../src/leak/dictionary'
 import { scanLogs } from '../src/logs'
 import { decodeTask } from '../src/tx/task'
 
@@ -33,6 +34,25 @@ const published = new Map<bigint, bigint>()
 for (const l of decryptLogs) published.set((l as unknown as A).args.ctHash, (l as unknown as A).args.result)
 
 const report = analyzeLeaks(tasks, published)
+{
+  // How much the trivial-handle dictionary adds when each tx is analysed on its own (as the UI does).
+  const byTx = new Map<string, typeof tasks>()
+  for (const t of tasks) byTx.set(t.txHash!, [...(byTx.get(t.txHash!) ?? []), t])
+  let without = 0
+  let withDict = 0
+  const examples: string[] = []
+  for (const txTasks of byTx.values()) {
+    const computedHere = txTasks.filter((t) => t.op?.kind !== 'trivial' && t.op?.kind !== 'random')
+    const a = analyzeLeaks(txTasks).known
+    const b = analyzeLeaks(txTasks, new Map(), lookupTrivial).known
+    without += computedHere.filter((t) => a.has(t.ctHash)).length
+    withDict += computedHere.filter((t) => b.has(t.ctHash)).length
+    const leaked = computedHere.filter((t) => a.has(t.ctHash))
+    if (leaked.length && examples.length < 3) examples.push(`${leaked[0].txHash} ${leaked.map((t) => t.operation).join(',')}`)
+  }
+  console.log('example txs with derivable values:', examples)
+  console.log(`per-tx public computed values (no published leaves): ${without} without dictionary, ${withDict} with`)
+}
 const bySource = new Map<string, number>()
 for (const k of report.known.values()) bySource.set(k.source, (bySource.get(k.source) ?? 0) + 1)
 const nonTrivial = tasks.filter((t) => t.op?.kind !== 'trivial')
