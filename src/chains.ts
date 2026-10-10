@@ -23,7 +23,12 @@ export interface LensChain {
   deployBlock: bigint
   /** Average seconds per block, for time-based windows. */
   blockTime: number
+  /** CoFHE threshold network (decrypt service), from @cofhe/sdk chain configs. */
+  tnUrl: string
 }
+
+const MAINNET_TN = 'https://cofhe-tn.mainnet.fhenix.zone'
+const TESTNET_TN = 'https://testnet-cofhe-tn.fhenix.zone'
 
 const MAINNET_TM = '0x52E7a0cAF234b266bCFAa6aA933a412FDe58432A' as const
 const TESTNET_TM = '0xeA30c4B8b44078Bbf8a6ef5b9f1eC1626C7848D9' as const
@@ -42,6 +47,7 @@ export const CHAINS: LensChain[] = [
     taskManager: MAINNET_TM,
     deployBlock: 26_120_645n,
     blockTime: 12,
+    tnUrl: MAINNET_TN,
   },
   {
     id: 42161,
@@ -55,6 +61,7 @@ export const CHAINS: LensChain[] = [
     taskManager: MAINNET_TM,
     deployBlock: 511_675_619n,
     blockTime: 0.25,
+    tnUrl: MAINNET_TN,
   },
   {
     id: 11155111,
@@ -69,6 +76,7 @@ export const CHAINS: LensChain[] = [
     taskManager: TESTNET_TM,
     deployBlock: 0n,
     blockTime: 12,
+    tnUrl: TESTNET_TN,
   },
   {
     id: 421614,
@@ -82,6 +90,7 @@ export const CHAINS: LensChain[] = [
     taskManager: TESTNET_TM,
     deployBlock: 0n,
     blockTime: 0.25,
+    tnUrl: TESTNET_TN,
   },
   {
     id: 84532,
@@ -95,6 +104,7 @@ export const CHAINS: LensChain[] = [
     taskManager: TESTNET_TM,
     deployBlock: 0n,
     blockTime: 2,
+    tnUrl: TESTNET_TN,
   },
 ]
 
