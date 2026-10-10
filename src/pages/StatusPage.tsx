@@ -9,6 +9,7 @@ import { customRpc, readStorage, writeStorage } from '../settings'
 import { useClients } from '../ui/clients'
 import { Addr, Bars, ErrorBox, Pill, Progress, Stat, TxLink } from '../ui/components'
 import { blockUrl, fmt, pct } from '../ui/format'
+import { LaunchHero, LaunchSteps } from '../ui/Launch'
 import { useAsync } from '../ui/useAsync'
 
 const historyKey = (c: LensChain) => `fheye:history:${c.id}:${c.taskManager.toLowerCase()}`
@@ -67,6 +68,7 @@ function MainnetCard({ chain }: { chain: LensChain }) {
 
       {d && (
         <>
+          <LaunchSteps chain={chain} flags={d.flags} history={d.history} accessList={d.admin.accessList} />
           <div className="stats">
             <Stat label="allowlisted callers" value={fmt(d.admin.accessList.length)} />
             <Stat label="FHE tasks" value={fmt(d.history.taskCount)} />
@@ -380,13 +382,10 @@ function ActivityCard() {
 export function StatusPage() {
   return (
     <div className="stack">
-      <div>
-        <h1 style={{ fontSize: 22 }}>CoFHE mainnet status</h1>
-        <p className="lede">
-          Is CoFHE live on mainnet yet? Its TaskManager contract is deployed on Ethereum and Arbitrum One, but until intake is enabled and contracts are allowlisted, nothing can run there. This page reads the contract directly: its
-          switches, which contracts may use it (rebuilt from its events and checked against storage), and who controls it.
-        </p>
-      </div>
+      <LaunchHero />
+      <p className="lede" style={{ marginTop: -4 }}>
+        Each card reads one TaskManager directly: its switches, which contracts may use it (rebuilt from its events and checked against storage), and who controls it.
+      </p>
       <div className="grid2">
         {CHAINS.filter((c) => c.mainnet).map((c) => (
           <MainnetCard key={c.id} chain={c} />

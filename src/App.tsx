@@ -7,6 +7,7 @@ import { StatusPage } from './pages/StatusPage'
 import { TxPage } from './pages/TxPage'
 import { customRpc, setCustomRpc, useSettingsVersion } from './settings'
 import { GraphIcon, HashIcon, PulseIcon, ReportIcon } from './ui/icons'
+import { LaunchBar } from './ui/Launch'
 
 function useRoute(): string[] {
   const parse = () => location.hash.replace(/^#\/?/, '').split('/').filter(Boolean)
@@ -51,6 +52,7 @@ export default function App() {
           </nav>
         </div>
       </header>
+      <LaunchBar />
       {!known && <Hero />}
       <div className="shell">
         <main>
