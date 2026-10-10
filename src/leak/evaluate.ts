@@ -4,9 +4,14 @@
 // results. Values propagate through ops whose operands are all known, and through identities
 // that hold for any operand value (x - x = 0, mul by a known 0, select with equal branches …).
 // Anything touching a user input or random value stays unknown unless an identity applies.
+//
+// A false "public" mark is the worst error this tool can make, so: every value carries the
+// TFHE-rs assumptions it relies on; when a decrypt published on-chain contradicts a derived
+// value, the chain wins and every value resting on the same assumptions is dropped; tasks whose
+// events don't decode cleanly are never evaluated.
 
 import type { Task } from '../tx/task'
-import { evalOp, type Assumption } from './ops'
+import { evalOp, type Assumption, type EvalResult } from './ops'
 
 export type KnownSource = 'trivial' | 'published' | 'derived' | 'identity'
 
@@ -26,50 +31,74 @@ export interface DecryptCheck {
   published: bigint
   match: boolean
   depth: number
+  assumptions: Assumption[]
 }
 
 export interface LeakReport {
   known: Map<bigint, Known>
-  /** Published decrypts that could also be recomputed from public leaves. */
+  /** Published decrypts that could also be recomputed from public leaves, one per handle. */
   checks: DecryptCheck[]
+  /** Assumptions contradicted by a published decrypt; values relying on them were dropped. */
+  refuted: Assumption[]
 }
 
-const uniq = (xs: bigint[]) => [...new Set(xs)]
+const uniq = <T,>(xs: T[]) => [...new Set(xs)]
 
-function identity(t: Task, known: Map<bigint, Known>): bigint | null {
+interface IdentityHit {
+  value: bigint
+  /** Known operands the identity relies on; their assumptions and leaves carry over. */
+  deps: Known[]
+}
+
+function identity(t: Task, lookup: (h: bigint) => Known | undefined): IdentityHit | null {
   const [a, b, c] = t.inputHandles
-  const ka = a && known.get(a.handle)
-  const kb = b && known.get(b.handle)
+  const ka = a && lookup(a.handle)
+  const kb = b && lookup(b.handle)
   const same = a && b && a.handle === b.handle
+  // Operands of binary ops share a type (the TaskManager enforces it), so a's width applies.
   const mask = a?.bits ? (1n << BigInt(a.bits)) - 1n : null
+  const absorbing = (v: bigint | null): IdentityHit | null => {
+    if (v === null) return null
+    if (ka?.value === v) return { value: v, deps: [ka] }
+    if (kb?.value === v) return { value: v, deps: [kb] }
+    return null
+  }
   switch (t.operation) {
     case 'sub':
     case 'xor':
-      return same ? 0n : null
+      return same ? { value: 0n, deps: [] } : null
     case 'eq':
     case 'lte':
     case 'gte':
-      return same ? 1n : null
+      return same ? { value: 1n, deps: [] } : null
     case 'ne':
     case 'lt':
     case 'gt':
-      return same ? 0n : null
+      return same ? { value: 0n, deps: [] } : null
     case 'mul':
     case 'and':
-      return ka?.value === 0n || kb?.value === 0n ? 0n : null
     case 'min':
-      return ka?.value === 0n || kb?.value === 0n ? 0n : null
+      return absorbing(0n)
     case 'or':
     case 'max':
-      return mask !== null && (ka?.value === mask || kb?.value === mask) ? mask : null
+      return absorbing(mask)
     case 'select': {
-      if (b.handle === c.handle && known.get(b.handle)) return known.get(b.handle)!.value
-      const kt = known.get(b.handle)
-      const kf = known.get(c.handle)
-      return kt && kf && kt.value === kf.value ? kt.value : null
+      const kt = lookup(b.handle)
+      const kf = lookup(c.handle)
+      if (b.handle === c.handle && kt) return { value: kt.value, deps: [kt] }
+      return kt && kf && kt.value === kf.value ? { value: kt.value, deps: [kt, kf] } : null
     }
     default:
       return null
+  }
+}
+
+function safeEval(t: Task, ins: Known[]): EvalResult | null {
+  const operandType = t.op!.kind === 'select' ? t.inputHandles[1].typeId : t.inputHandles[0].typeId
+  try {
+    return evalOp(t.operation, operandType, ins.map((k) => k.value), t.op!.kind === 'cast' ? Number(t.input2) : undefined)
+  } catch {
+    return null // unknown type id: leave the value unknown rather than guess
   }
 }
 
@@ -86,10 +115,13 @@ export function analyzeLeaks(
 ): LeakReport {
   const known = new Map<bigint, Known>()
   const depth = new Map<bigint, number>()
-  const checks: DecryptCheck[] = []
+  const checks = new Map<bigint, DecryptCheck>()
+  const refuted = new Set<Assumption>()
+  // Only tasks whose event decoded cleanly (handle re-derived, types consistent) are trusted.
+  const clean = tasks.filter((t) => t.op && t.issues.length === 0)
 
-  for (const t of tasks) {
-    if (t.op?.kind === 'trivial' && !known.has(t.ctHash)) {
+  for (const t of clean) {
+    if (t.op!.kind === 'trivial' && !known.has(t.ctHash)) {
       known.set(t.ctHash, { value: t.input1, source: 'trivial', assumptions: [], op: t.operation, leaves: [t.ctHash] })
       depth.set(t.ctHash, 1)
     }
@@ -104,9 +136,8 @@ export function analyzeLeaks(
     return v === undefined ? undefined : { value: v, source: 'trivial', assumptions: [], op: 'trivialEncrypt', leaves: [h] }
   }
   const lookup = (h: bigint) => known.get(h) ?? publishedLeaf(h) ?? trivialLeaf(h)
-  const view = { get: lookup } as Map<bigint, Known>
 
-  let pending = tasks.filter((t) => t.op && t.op.kind !== 'trivial' && t.op.kind !== 'random')
+  let pending = clean.filter((t) => t.op!.kind !== 'trivial' && t.op!.kind !== 'random')
   for (let progress = true; progress && pending.length; ) {
     progress = false
     const still: Task[] = []
@@ -114,21 +145,27 @@ export function analyzeLeaks(
       let result: Known | null = null
       const ins = t.inputHandles.map((h) => lookup(h.handle))
       if (ins.every(Boolean)) {
-        const operandType = t.op!.kind === 'select' ? t.inputHandles[1].typeId : t.inputHandles[0].typeId
-        const r = evalOp(t.operation, operandType, ins.map((k) => k!.value), t.op!.kind === 'cast' ? Number(t.input2) : undefined)
+        const r = safeEval(t, ins as Known[])
         if (r) {
           result = {
             value: r.value,
             source: 'derived',
-            assumptions: [...new Set([...ins.flatMap((k) => k!.assumptions), ...r.assumptions])],
+            assumptions: uniq([...ins.flatMap((k) => k!.assumptions), ...r.assumptions]),
             op: t.operation,
             leaves: uniq(ins.flatMap((k) => k!.leaves)),
           }
         }
       }
       if (!result) {
-        const v = identity(t, view)
-        if (v !== null) result = { value: v, source: 'identity', assumptions: [], op: t.operation, leaves: [] }
+        const hit = identity(t, lookup)
+        if (hit)
+          result = {
+            value: hit.value,
+            source: 'identity',
+            assumptions: uniq(hit.deps.flatMap((k) => k.assumptions)),
+            op: t.operation,
+            leaves: uniq(hit.deps.flatMap((k) => k.leaves)),
+          }
       }
       if (!result) {
         still.push(t)
@@ -137,7 +174,15 @@ export function analyzeLeaks(
 
       const d = 1 + Math.max(0, ...t.inputHandles.map((h) => depth.get(h.handle) ?? 0))
       const pub = published.get(t.ctHash)
-      if (pub !== undefined) checks.push({ handle: t.ctHash, derived: result.value, published: pub, match: pub === result.value, depth: d })
+      if (pub !== undefined && !checks.has(t.ctHash)) {
+        checks.set(t.ctHash, { handle: t.ctHash, derived: result.value, published: pub, match: pub === result.value, depth: d, assumptions: result.assumptions })
+      }
+      if (pub !== undefined && pub !== result.value) {
+        // The chain contradicts the model. Trust the chain for this handle and distrust whatever
+        // assumptions the derivation used.
+        result.assumptions.forEach((a) => refuted.add(a))
+        result = publishedLeaf(t.ctHash)!
+      }
       if (!known.has(t.ctHash)) {
         known.set(t.ctHash, result)
         depth.set(t.ctHash, d)
@@ -147,6 +192,10 @@ export function analyzeLeaks(
     pending = still
   }
 
+  if (refuted.size) {
+    for (const [h, k] of known) if (k.assumptions.some((a) => refuted.has(a))) known.delete(h)
+  }
+
   // Published values that couldn't be derived, and resolved external trivials, are still public leaves.
   for (const t of tasks) {
     for (const h of [t.ctHash, ...t.inputHandles.map((x) => x.handle)]) {
@@ -154,5 +203,5 @@ export function analyzeLeaks(
       if (leaf) known.set(h, leaf)
     }
   }
-  return { known, checks }
+  return { known, checks: [...checks.values()], refuted: [...refuted] }
 }

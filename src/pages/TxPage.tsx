@@ -196,6 +196,19 @@ function TxDetails({ t }: { t: LoadedTx }) {
         </section>
       )}
 
+      {leaks.checks.some((c) => !c.match) && (
+        <section className="notice danger">
+          <b>A decrypt result published on-chain contradicts FHE Lens' recomputation.</b>
+          {leaks.refuted.length > 0 ? (
+            <p>
+              CoFHE does not behave as assumed here: {leaks.refuted.map((a) => ASSUMPTION_TEXT[a]).join('; ')}. FHE Lens uses the on-chain value and ignores every value that relied on this assumption.
+            </p>
+          ) : (
+            <p>FHE Lens uses the on-chain value for that handle. Please report this transaction; it points to a gap in the op model.</p>
+          )}
+        </section>
+      )}
+
       {graph.tasks.length === 0 && graph.decrypts.length === 0 && graph.inputs.size === 0 && <p className="muted">This transaction did not interact with the CoFHE TaskManager.</p>}
 
       {graph.tasks.length > 0 && (

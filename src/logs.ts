@@ -49,6 +49,8 @@ export class PrunedHistoryError extends Error {
   }
 }
 
+export class TruncatedResponseError extends Error {}
+
 // Only the server's own message: viem's `message` embeds the request body, whose topic hashes
 // can contain digit runs like "429" and trip the patterns below.
 function errorText(e: unknown): string {
@@ -94,13 +96,17 @@ export async function scanLogs<const E extends readonly AbiEvent[]>(opts: ScanOp
         toBlock: to,
         strict: true,
       } as Parameters<PublicClient['getLogs']>[0])
-      if (logs.length >= trustLimit && to > from) return bisect(from, to)
+      if (logs.length >= trustLimit) {
+        if (to > from) return bisect(from, to)
+        throw new TruncatedResponseError(`Block ${from} returned ${logs.length} logs, the trust limit; the RPC may have truncated it. Try an RPC without response caps.`)
+      }
       out.push(...(logs as Log[]))
       progress.logs += logs.length
       progress.doneBlocks += to - from + 1n
       if (logs.length < trustLimit / 8 && to - from + 1n >= span) span = span * 2n > maxRange ? maxRange : span * 2n
       onProgress?.({ ...progress })
     } catch (e) {
+      if (e instanceof TruncatedResponseError) throw e
       const text = errorText(e)
       const rateLimited = RATE_LIMITED.test(text)
       if (!rateLimited && PRUNED.test(text)) throw new PrunedHistoryError(from, to, text)
@@ -113,13 +119,19 @@ export async function scanLogs<const E extends readonly AbiEvent[]>(opts: ScanOp
     }
   }
 
+  let failed = false
   async function worker() {
-    while (cursor <= toBlock) {
+    while (cursor <= toBlock && !failed) {
       const from = cursor
       const end = from + span - 1n
       const to = end > toBlock ? toBlock : end
       cursor = to + 1n
-      await fetchRange(from, to)
+      try {
+        await fetchRange(from, to)
+      } catch (e) {
+        failed = true // stop the other workers from sending more requests
+        throw e
+      }
     }
   }
   await Promise.all(Array.from({ length: concurrency }, worker))

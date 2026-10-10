@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Log, PublicClient } from 'viem'
-import { PrunedHistoryError, scanLogs } from './logs'
+import { PrunedHistoryError, TruncatedResponseError, scanLogs } from './logs'
 
 // One log per block in [0, 9999].
 const ALL = Array.from({ length: 10_000 }, (_, i) => ({ blockNumber: BigInt(i), logIndex: 0 }) as unknown as Log)
@@ -58,5 +58,13 @@ describe('scanLogs', () => {
     const { client } = fakeClient((f, t) => slice(f, t).reverse())
     const logs = await scanLogs({ ...base, client, maxRange: 1000n, concurrency: 5 })
     expect(logs.map((l) => Number(l.blockNumber))).toEqual(ALL.map((_, i) => i))
+  })
+})
+
+describe('scanLogs truncation at the block level', () => {
+  it('refuses a single block at the trust limit instead of accepting a possibly truncated set', async () => {
+    // Every range, down to a single block, comes back capped at 600 logs.
+    const { client } = fakeClient(() => ALL.slice(0, 600))
+    await expect(scanLogs({ ...base, client, toBlock: 3n, maxRange: 4n, trustLimit: 500 })).rejects.toBeInstanceOf(TruncatedResponseError)
   })
 })

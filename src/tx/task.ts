@@ -28,9 +28,10 @@ export interface Task extends RawTask {
   issues: string[]
 }
 
-function int32FromWord(w: bigint): number {
-  const v = Number(w & 0xffffffffn)
-  return v >= 0x80000000 ? v - 0x100000000 : v
+// The zone travels as an int32 word but the handle stores int8(zone) (TMCommon.appendMetadata).
+function zoneFromWord(w: bigint): number {
+  const v = Number(w & 0xffn)
+  return v >= 0x80 ? v - 0x100 : v
 }
 
 export function decodeTask(raw: RawTask): Task {
@@ -65,10 +66,10 @@ export function decodeTask(raw: RawTask): Task {
       break
     case 'trivial':
       expectedType = Number(raw.input2)
-      expectedZone = int32FromWord(raw.input3)
+      expectedZone = zoneFromWord(raw.input3)
       break
     case 'random':
-      expectedZone = int32FromWord(raw.input2)
+      expectedZone = zoneFromWord(raw.input2)
       break
   }
 
