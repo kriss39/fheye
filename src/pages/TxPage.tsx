@@ -174,9 +174,11 @@ function TxDetails({ t }: { t: LoadedTx }) {
           {publicComputed.length > 0 ? (
             <>
               <b>
-                {publicComputed.length} of {computed.length} computed value{computed.length === 1 ? '' : 's'} in this transaction look encrypted but are public.
+                {publicComputed.length} of {computed.length} computed value{computed.length === 1 ? '' : 's'} in this transaction {publicComputed.length === 1 ? 'looks encrypted but is' : 'look encrypted but are'} public.
               </b>
-              <p>They derive only from trivially encrypted constants or published decrypt results, so anyone can recompute them. They are highlighted below.</p>
+              <p>
+                {publicComputed.length === 1 ? 'It derives' : 'They derive'} only from trivially encrypted constants or published decrypt results, so anyone can recompute {publicComputed.length === 1 ? 'it' : 'them'}. Highlighted below.
+              </p>
             </>
           ) : (
             <b>No computed value in this transaction can be derived from public data alone.</b>
@@ -357,7 +359,12 @@ function Ref({ h, at, t, rowOf, jump }: { h: bigint; at: number; t: LoadedTx; ro
 
 function Inputs({ task, at, t, rowOf, jump }: { task: Task; at: number; t: LoadedTx; rowOf: Map<bigint, number>; jump: (i: number) => void }) {
   if (!task.op) return <span className="muted small">unknown op</span>
-  if (task.op.kind === 'trivial') return <span className="value">{task.input1.toString()}</span>
+  if (task.op.kind === 'trivial')
+    return (
+      <span className="value" style={{ whiteSpace: task.input1 < 10n ** 20n ? 'nowrap' : undefined }}>
+        {task.input1.toString()}
+      </span>
+    )
   if (task.op.kind === 'random') return <span className="muted small">random</span>
   return (
     <span className="row" style={{ gap: 6 }}>
