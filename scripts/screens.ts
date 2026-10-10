@@ -1,6 +1,7 @@
 // Opens the app in headless Chrome, visits each route and saves screenshots plus console errors.
 // Usage: npx tsx scripts/screens.ts <outDir> [route...]
 // CUSTOM_RPC="1=http://127.0.0.1:8545" points a chain at another RPC (e.g. a local fork), like the settings panel.
+// MAX_HEIGHT=1100 crops each full-page shot to its top part.
 import { mkdirSync } from 'node:fs'
 import { chromium } from 'playwright-core'
 import { createServer } from 'vite'
@@ -34,7 +35,10 @@ try {
       }
       await page.waitForTimeout(300)
       const name = `${scheme}-${route.replace(/[^a-z0-9]+/gi, '_').slice(0, 40)}.png`
-      await page.screenshot({ path: `${outDir}/${name}`, fullPage: true })
+      const maxHeight = Number(process.env.MAX_HEIGHT ?? 0)
+      const height = await page.evaluate(() => document.documentElement.scrollHeight)
+      const width = page.viewportSize()!.width
+      await page.screenshot({ path: `${outDir}/${name}`, fullPage: true, clip: maxHeight && height > maxHeight ? { x: 0, y: 0, width, height: maxHeight } : undefined })
       console.log('saved', name)
     }
     console.log(`${scheme}: ${errors.length} console errors`)

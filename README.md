@@ -14,7 +14,11 @@ A browser-only inspector for [Fhenix CoFHE](https://cofhe-docs.fhenix.zone). Pas
 - estimated gas per task (from the Fhenix docs gas table) and the FHE share of the tx's gas;
 - **values that look encrypted but are public** (see below).
 
-**Contract privacy report.** Give it a contract address: FHE Lens finds the contract's latest FHE transactions on a network, analyses each one and adds up how many computed values are provably public, how many plaintext constants it encrypts, and how many of its handles anyone may decrypt.
+![Transaction view: a Sepolia transfer whose amount is computed from two plaintext constants](docs/tx.png)
+
+**Contract privacy report.** Give it a contract address: FHE Lens finds the contract's latest FHE transactions on a network, analyses each one and adds up how many computed values are provably public, how many plaintext constants it encrypts, and how many of its handles anyone may decrypt. Handles are content-addressed, so each value is followed back through earlier transactions in the window: a balance that started from a trivially encrypted zero is still flagged in later transactions that only add to it.
+
+![Contract privacy report: half of a busy Sepolia contract's computed values are public](docs/contract.png)
 
 **Handle decoder.** Paste handles in bulk and read their type, trivial bit and zone offline. Optionally ask a network whether each handle is globally decryptable, whether a decrypt result was published, and whether a given address is allowed.
 
