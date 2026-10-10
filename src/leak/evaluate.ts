@@ -78,7 +78,12 @@ function identity(t: Task, known: Map<bigint, Known>): bigint | null {
  * consume a trivialEncrypt handle stored by an earlier tx before re-creating it. Trivial values
  * are seeded first and the rest is evaluated to a fixpoint.
  */
-export function analyzeLeaks(tasks: Task[], published: Map<bigint, bigint> = new Map()): LeakReport {
+export function analyzeLeaks(
+  tasks: Task[],
+  published: Map<bigint, bigint> = new Map(),
+  /** Resolves trivially encrypted handles created outside `tasks` (see leak/dictionary.ts). */
+  resolveTrivial?: (handle: bigint) => bigint | undefined,
+): LeakReport {
   const known = new Map<bigint, Known>()
   const depth = new Map<bigint, number>()
   const checks: DecryptCheck[] = []
@@ -93,7 +98,12 @@ export function analyzeLeaks(tasks: Task[], published: Map<bigint, bigint> = new
     const v = published.get(h)
     return v === undefined ? undefined : { value: v, source: 'published', assumptions: [], op: 'decrypt', leaves: [h] }
   }
-  const lookup = (h: bigint) => known.get(h) ?? publishedLeaf(h)
+  const trivialLeaf = (h: bigint): Known | undefined => {
+    if (!resolveTrivial || ((h >> 15n) & 1n) !== 1n) return undefined
+    const v = resolveTrivial(h)
+    return v === undefined ? undefined : { value: v, source: 'trivial', assumptions: [], op: 'trivialEncrypt', leaves: [h] }
+  }
+  const lookup = (h: bigint) => known.get(h) ?? publishedLeaf(h) ?? trivialLeaf(h)
   const view = { get: lookup } as Map<bigint, Known>
 
   let pending = tasks.filter((t) => t.op && t.op.kind !== 'trivial' && t.op.kind !== 'random')
@@ -137,10 +147,10 @@ export function analyzeLeaks(tasks: Task[], published: Map<bigint, bigint> = new
     pending = still
   }
 
-  // Published values that couldn't be derived are still public leaves.
+  // Published values that couldn't be derived, and resolved external trivials, are still public leaves.
   for (const t of tasks) {
     for (const h of [t.ctHash, ...t.inputHandles.map((x) => x.handle)]) {
-      const leaf = !known.has(h) && publishedLeaf(h)
+      const leaf = !known.has(h) && (publishedLeaf(h) ?? trivialLeaf(h))
       if (leaf) known.set(h, leaf)
     }
   }

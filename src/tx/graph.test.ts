@@ -58,6 +58,14 @@ describe('analyzeLeaks', () => {
     expect(g.tasks.some((t) => known.has(t.ctHash))).toBe(false)
   })
 
+  it('keeps a published decrypt of a secret value apart from derived leaks', () => {
+    const g = buildTxGraph(inputs.logs, inputs.taskManager)
+    const add = g.tasks[0] // add(input, input), decrypted and published in a later tx
+    const { known, checks } = analyzeLeaks(g.tasks, new Map([[add.ctHash, 10790n]]))
+    expect(known.get(add.ctHash)).toMatchObject({ value: 10790n, source: 'published' })
+    expect(checks).toEqual([])
+  })
+
   it('uses identities that hold for any value', () => {
     const g = buildTxGraph(inputs.logs, inputs.taskManager)
     const [x] = g.tasks[1].inputHandles
@@ -72,5 +80,18 @@ describe('analyzeLeaks', () => {
     expect(ok.checks).toEqual([expect.objectContaining({ handle: add.ctHash, match: true })])
     const bad = analyzeLeaks(g.tasks, new Map([[add.ctHash, 9999n]]))
     expect(bad.checks[0].match).toBe(false)
+  })
+})
+
+describe('trivial dictionary', () => {
+  it('resolves an encrypted zero stored by an earlier tx', async () => {
+    const { lookupTrivial } = await import('../leak/dictionary')
+    const g = buildTxGraph(transfer.logs, transfer.taskManager)
+    const zero = g.tasks[3] // trivialEncrypt(0) as euint64
+    expect(lookupTrivial(zero.ctHash)).toBe(0n)
+    // Drop the in-tx trivialEncrypt(0) tasks: the add still resolves through the dictionary.
+    const withoutZero = g.tasks.filter((t) => t.ctHash !== zero.ctHash)
+    expect(analyzeLeaks(withoutZero).known.get(g.tasks[1].ctHash)).toBeUndefined()
+    expect(analyzeLeaks(withoutZero, new Map(), lookupTrivial).known.get(g.tasks[1].ctHash)?.value).toBe(10000n)
   })
 })
