@@ -1,23 +1,13 @@
 // Landing page: what FHEye finds, in one picture, and where to start.
 
-import { useState, type FormEvent } from 'react'
 import { ExampleTiles } from '../ui/ExampleTiles'
-import { AlertIcon, ArrowIcon, CheckIcon, GraphIcon, HashIcon, LockIcon, PulseIcon, ReportIcon, SearchIcon, ShieldIcon, UnlockIcon } from '../ui/icons'
+import { AlertIcon, ArrowIcon, CheckIcon, GraphIcon, HashIcon, LockIcon, PulseIcon, RadarIcon, ReportIcon, ShieldIcon, UnlockIcon } from '../ui/icons'
 import { LensReveal } from '../ui/LensReveal'
 import { LivePulse } from '../ui/LivePulse'
+import { UniversalSearch } from '../ui/UniversalSearch'
 import { spotlight } from '../ui/motion'
 
-const isTxHash = (s: string) => /^0x[0-9a-fA-F]{64}$/.test(s)
-
 export function Hero() {
-  const [input, setInput] = useState('')
-  const [bad, setBad] = useState(false)
-  const submit = (e: FormEvent) => {
-    e.preventDefault()
-    const h = input.trim()
-    if (!isTxHash(h)) return setBad(true)
-    location.hash = `#/tx/${h}`
-  }
   return (
     <section className="hero">
       <div className="hero-inner">
@@ -27,28 +17,9 @@ export function Hero() {
             Encrypted isn't always <em>private.</em>
           </h1>
           <p className="sub">FHEye reads a CoFHE transaction and shows which encrypted values anyone can work out from public data, and why. No wallet, nothing to install.</p>
-          <form className="hero-search" onSubmit={submit}>
-            <SearchIcon size={20} />
-            <input
-              placeholder="Paste a transaction hash (0x…)"
-              value={input}
-              onChange={(e) => {
-                setInput(e.target.value)
-                setBad(false)
-              }}
-              aria-label="Transaction hash"
-              spellCheck={false}
-            />
-            <button className="primary lg">Inspect</button>
-          </form>
+          <UniversalSearch />
           <p className="hero-note">
-            {bad ? (
-              "That isn't a transaction hash: it should be 0x followed by 64 hex characters."
-            ) : (
-              <>
-                No hash at hand? <a href="#examples">Try an example</a>. The network is found automatically.
-              </>
-            )}
+            No hash at hand? <a href="#examples">Try an example</a>, or watch the <a href="#/radar">leak radar</a> live.
           </p>
           <LivePulse />
         </div>
@@ -73,6 +44,7 @@ const STEPS: Array<[string, string]> = [
 ]
 
 const TOOLS = [
+  { href: '#/radar', icon: <RadarIcon />, title: 'Leak radar', text: 'The latest CoFHE transactions as they happen, each marked Exposed or Nothing found, and the contracts leaking most right now.' },
   { href: '#/contract', icon: <ReportIcon />, title: 'Contract report', text: 'Grade a contract by how many of its encrypted values are really public, across its recent transactions.' },
   { href: '#/handles', icon: <HashIcon />, title: 'Handle decoder', text: 'Paste the ids that stand for encrypted values and see their type, origin and who may decrypt them.' },
   { href: '#/status', icon: <PulseIcon />, title: 'Mainnet status', text: 'Is CoFHE open on Ethereum and Arbitrum yet, and which contracts are allowed to use it?' },

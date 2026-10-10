@@ -41,6 +41,9 @@ export function LivePulse() {
           <span>
             <Count value={Math.round(a.trivialShare * 100)} suffix="%" /> of them just encrypt a plain number
           </span>
+          <a className="live-link" href="#/radar">
+            Open the leak radar →
+          </a>
         </>
       ) : (
         <span className="live-wait">reading the chain…</span>

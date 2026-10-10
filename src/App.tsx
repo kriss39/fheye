@@ -6,7 +6,9 @@ import { HomePage, Hero } from './pages/HomePage'
 import { StatusPage } from './pages/StatusPage'
 import { TxPage } from './pages/TxPage'
 import { customRpc, setCustomRpc, useSettingsVersion } from './settings'
-import { GraphIcon, HashIcon, PulseIcon, ReportIcon } from './ui/icons'
+import { GraphIcon, HashIcon, PulseIcon, RadarIcon, ReportIcon } from './ui/icons'
+import { UniversalSearch } from './ui/UniversalSearch'
+import { RadarPage } from './pages/RadarPage'
 import { LaunchBar, MainnetBadge } from './ui/Launch'
 
 function useRoute(): string[] {
@@ -21,6 +23,7 @@ function useRoute(): string[] {
 }
 
 const TABS = [
+  ['radar', 'Radar', RadarIcon],
   ['tx', 'Transaction', GraphIcon],
   ['contract', 'Contract', ReportIcon],
   ['handles', 'Handles', HashIcon],
@@ -30,7 +33,7 @@ const TABS = [
 export default function App() {
   const [page = 'home', ...params] = useRoute()
 
-  const known = page === 'tx' || page === 'contract' || page === 'handles' || page === 'status'
+  const known = page === 'tx' || page === 'contract' || page === 'handles' || page === 'status' || page === 'radar'
   return (
     <>
       <header className="brandbar">
@@ -51,13 +54,16 @@ export default function App() {
               </a>
             ))}
           </nav>
+          <UniversalSearch compact />
         </div>
       </header>
       <LaunchBar />
       {!known && <Hero />}
       <div className="shell">
         <main>
-          {page === 'status' ? (
+          {page === 'radar' ? (
+            <RadarPage key={params.join('/')} params={params} />
+          ) : page === 'status' ? (
             <StatusPage />
           ) : page === 'contract' ? (
             <ContractPage params={params} />

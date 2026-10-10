@@ -76,3 +76,10 @@ export const ShieldIcon = (p: P) => (
     <path d="m8.5 12 2.5 2.5 4.5-5" />
   </Icon>
 )
+export const RadarIcon = (p: P) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <circle cx="12" cy="12" r="5" />
+    <path d="M12 12 18.5 5.5" />
+  </Icon>
+)

@@ -4,6 +4,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import type { Hash } from 'viem'
 import { CHAINS, type LensChain } from '../chains'
+import { decodeHandle } from '../handle/decode'
 import { lookupTrivial } from '../leak/dictionary'
 import type { Known } from '../leak/evaluate'
 import { explainTx } from '../leak/explain'
@@ -85,7 +86,17 @@ function FindChain({ hash }: { hash: Hash }) {
     if (state.data) location.replace(`#/tx/${state.data.key}/${hash}`)
   }, [state.data, hash])
   if (state.loading) return <p className="muted">Looking for this transaction on {CHAINS.map((c) => c.name).join(', ')}…</p>
-  if (state.data === null) return <ErrorBox error="No supported network knows this transaction." />
+  if (state.data === null)
+    return (
+      <div className="stack tight">
+        <ErrorBox error="No supported network knows this transaction." />
+        {decodeHandle(BigInt(hash)).typeName && (
+          <p className="small">
+            It could be a handle (the id of an encrypted value) instead: <a href={`#/handles/${hash}`}>decode it as a handle</a>.
+          </p>
+        )}
+      </div>
+    )
   if (state.error !== undefined) return <ErrorBox error={state.error} />
   return null
 }

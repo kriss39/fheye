@@ -92,6 +92,29 @@ try {
   )
 
   await check(
+    'leak radar lists live transactions with verdicts',
+    async (p) => {
+      await p.goto(`${BASE}/#/radar`)
+      await p.getByText('Latest transactions').waitFor()
+      await p.locator('.radar-list li').first().waitFor()
+      if (!(await p.locator('.radar-list .badge').count())) throw new Error('no verdict badges')
+    },
+    page,
+  )
+
+  await check(
+    'search opens a contract report on the right network',
+    async (p) => {
+      await p.goto(`${BASE}/#/`)
+      const box = p.locator('.hero-search input')
+      await box.fill('0x87a3effb84cbe1e4cab6ab430139ec41d156d55a')
+      await box.press('Enter')
+      await p.waitForURL(/#\/contract\/sepolia\/0x87a3/)
+    },
+    page,
+  )
+
+  await check(
     'unknown tx hash gives a readable error',
     async (p) => {
       await p.goto(`${BASE}/#/tx/sepolia/0x${'ab'.repeat(32)}`)
