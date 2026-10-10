@@ -31,7 +31,7 @@ export default function App() {
     <div className="shell">
       <header className="top">
         <a className="brand" href="#/">
-          <img src="/favicon.svg" width={22} height={22} alt="" />
+          <img src={`${import.meta.env.BASE_URL}favicon.svg`} width={22} height={22} alt="" />
           FHE Lens <small>CoFHE inspector</small>
         </a>
         <nav className="tabs">
