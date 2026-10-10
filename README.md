@@ -8,7 +8,7 @@ A client-side inspector for [Fhenix CoFHE](https://cofhe-docs.fhenix.zone), in t
 
 **Transaction view.** Give it a tx hash (the network is found automatically). It decodes every `TaskCreated`, `InputVerified` and `DecryptionResult` event the CoFHE TaskManager emitted and shows:
 
-- the task graph, drawn as a layered diagram and listed in execution order, with each input linked to the task that produced it;
+- the task graph, drawn as a layered diagram and listed in execution order, with each input linked to the task that produced it; selecting a task lights up everything it is computed from and spells out the formula;
 - each output handle's type, security zone and trivial bit;
 - access status per handle: decryptable by anyone (`allowGlobal`), decrypt result published on-chain, allowed for the calling contract and the sender;
 - estimated gas per task (from the Fhenix docs gas table) and the FHE share of the tx's gas;
@@ -16,7 +16,7 @@ A client-side inspector for [Fhenix CoFHE](https://cofhe-docs.fhenix.zone), in t
 
 ![Transaction view: a Sepolia transfer whose amount is computed from two plaintext constants](docs/tx.png)
 
-**Contract privacy report.** Give it a contract address: FHE Lens finds the contract's latest FHE transactions on a network, analyses each one and adds up how many computed values are provably public, how many plaintext constants it encrypts, and how many of its handles anyone may decrypt. Handles are content-addressed, so each value is followed back through earlier transactions in the window: a balance that started from a trivially encrypted zero is still flagged in later transactions that only add to it.
+**Contract privacy report.** Give it a contract address: FHE Lens finds the contract's latest FHE transactions on a network, analyses each one and adds up how many computed values are provably public, how many plaintext constants it encrypts, and how many of its handles anyone may decrypt. Handles are content-addressed, so each value is followed back through earlier transactions in the window: a balance that started from a trivially encrypted zero is still flagged in later transactions that only add to it. The report grades the share of public values (A only when nothing is provably public) and its link can be shared.
 
 ![Contract privacy report: half of a busy Sepolia contract's computed values are public](docs/contract.png)
 
