@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { CHAINS, chainById, type LensChain } from '../chains'
-import { recentActivity } from '../mainnet/activity'
+import { attributeTasks, recentActivity } from '../mainnet/activity'
 import { deserializeHistory, foldAdmin, readFlags, scanHistory, serializeHistory, verifyAccessList, type TmEvent } from '../mainnet/status'
 import type { ScanProgress } from '../logs'
 import { customRpc, readStorage, writeStorage } from '../settings'
@@ -27,8 +27,11 @@ function MainnetCard({ chain }: { chain: LensChain }) {
     const [flags, history] = await Promise.all([readFlags(client, chain.taskManager), scanHistory(logClient, chain, { prior, onProgress: setProgress, signal })])
     writeStorage(historyKey(chain), serializeHistory(history))
     const admin = foldAdmin(history.admin)
-    const accessList = await verifyAccessList(client, chain.taskManager, admin.accessList)
-    return { flags, history, admin: { ...admin, accessList } }
+    const [accessList, callers] = await Promise.all([
+      verifyAccessList(client, chain.taskManager, admin.accessList),
+      history.taskCount ? attributeTasks(client, new Map(Object.entries(history.tasksByTx) as Array<[`0x${string}`, number]>), 150) : null,
+    ])
+    return { flags, history, admin: { ...admin, accessList }, callers }
   })
   const d = state.data
 
@@ -101,6 +104,33 @@ function MainnetCard({ chain }: { chain: LensChain }) {
                 </tbody>
               </table>
             </div>
+          )}
+          {d.callers && d.callers.contracts.length > 0 && (
+            <>
+              <h3 style={{ marginTop: 8 }}>Busiest contracts</h3>
+              <div className="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Contract (tx target)</th>
+                      <th className="num">Tasks</th>
+                      <th className="num">Txs</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {d.callers.contracts.slice(0, 10).map((c) => (
+                      <tr key={c.address}>
+                        <td>
+                          <Addr chain={chain} address={c.address} />
+                        </td>
+                        <td className="num">{fmt(c.tasks)}</td>
+                        <td className="num">{fmt(c.txs)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
           {d.admin.denyList.length > 0 && (
             <p className="small">

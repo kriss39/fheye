@@ -59,18 +59,7 @@ export async function recentActivity(
     else if (ev.name === 'DecryptionResult') decrypts++
   }
 
-  // Look up the busiest txs first so the sample covers most tasks.
-  const ranked = [...tasksByTx].sort((a, b) => b[1] - a[1]).slice(0, opts.maxTxLookups ?? 300)
-  const txs = await Promise.all(ranked.map(([hash]) => client.getTransaction({ hash }).catch(() => null)))
-  const contracts = new Map<Address, ContractActivity>()
-  ranked.forEach(([, n], i) => {
-    const to = txs[i]?.to
-    if (!to) return
-    const c = contracts.get(to) ?? { address: to, tasks: 0, txs: 0 }
-    c.tasks += n
-    c.txs++
-    contracts.set(to, c)
-  })
+  const { contracts, ranked, targets } = await attributeTasks(client, tasksByTx, opts.maxTxLookups ?? 300)
 
   return {
     fromBlock,
@@ -81,8 +70,25 @@ export async function recentActivity(
     decrypts,
     byOp,
     trivialShare: tasks ? (byOp.trivialEncrypt ?? 0) / tasks : 0,
-    contracts: [...contracts.values()].sort((a, b) => b.tasks - a.tasks),
+    contracts,
     sampledTxs: ranked.length,
-    topTxs: ranked.slice(0, 25).map(([hash, n], i) => ({ hash, tasks: n, to: txs[i]?.to ?? null })),
+    topTxs: ranked.slice(0, 25).map(([hash, n], i) => ({ hash, tasks: n, to: targets[i] })),
   }
+}
+
+/** Groups task counts by tx target, looking up the busiest txs first so the sample covers most tasks. */
+export async function attributeTasks(client: PublicClient, tasksByTx: Map<Hash, number>, maxLookups: number) {
+  const ranked = [...tasksByTx].sort((a, b) => b[1] - a[1]).slice(0, maxLookups)
+  const txs = await Promise.all(ranked.map(([hash]) => client.getTransaction({ hash }).catch(() => null)))
+  const targets = txs.map((t) => t?.to ?? null)
+  const byContract = new Map<Address, ContractActivity>()
+  ranked.forEach(([, n], i) => {
+    const to = targets[i]
+    if (!to) return
+    const c = byContract.get(to) ?? { address: to, tasks: 0, txs: 0 }
+    c.tasks += n
+    c.txs++
+    byContract.set(to, c)
+  })
+  return { contracts: [...byContract.values()].sort((a, b) => b.tasks - a.tasks), ranked, targets }
 }
