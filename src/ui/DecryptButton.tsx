@@ -5,27 +5,32 @@ import { useState } from 'react'
 import { publicDecrypt, type PublicDecryptResult } from '../acl/publicDecrypt'
 import type { LensChain } from '../chains'
 import { useClients } from './clients'
+import { AlertIcon, CheckIcon } from './icons'
 import { errorMessage } from './format'
 
-export function DecryptButton({ chain, handle, expected }: { chain: LensChain; handle: bigint; expected?: bigint }) {
+export function DecryptButton({ chain, handle, expected, big = false }: { chain: LensChain; handle: bigint; expected?: bigint; big?: boolean }) {
   const { client } = useClients(chain)
   const [state, setState] = useState<{ busy: boolean; result?: PublicDecryptResult; error?: string }>({ busy: false })
   if (state.result) {
     const r = state.result
     const agrees = expected === undefined ? null : expected === r.value
+    const good = r.verified && agrees !== false
     return (
-      <span className="small" title={`signature from ${r.signer ?? 'unknown'}`}>
-        network: <span className="value">{r.value.toString()}</span>{' '}
-        <span style={{ color: r.verified ? 'var(--ok)' : 'var(--danger)' }}>{r.verified ? '✓ signed by the decrypt signer' : '✗ signature not from the decrypt signer'}</span>
-        {agrees !== null && <span style={{ color: agrees ? 'var(--ok)' : 'var(--danger)' }}>{agrees ? ' · matches FHE Lens' : ' · differs from FHE Lens'}</span>}
+      <span className={big ? `verify-result ${good ? 'ok' : 'bad'}` : 'small'} title={`signature from ${r.signer ?? 'unknown'}`}>
+        {big && (good ? <CheckIcon size={18} /> : <AlertIcon size={18} />)}
+        <span>
+          {big ? 'The CoFHE network says' : 'network:'} <span className="value">{big ? r.value.toLocaleString('en-US') : r.value.toString()}</span>{' '}
+          <span style={{ color: r.verified ? 'var(--ok)' : 'var(--danger)' }}>{r.verified ? '✓ signed by the decrypt signer' : '✗ signature not from the decrypt signer'}</span>
+          {agrees !== null && <span style={{ color: agrees ? 'var(--ok)' : 'var(--danger)' }}>{agrees ? ' · matches FHE Lens' : ' · differs from FHE Lens'}</span>}
+        </span>
       </span>
     )
   }
   return (
-    <span className="small">
+    <span className={big ? 'verdict-actions' : 'small'}>
       <button
         type="button"
-        className="link small"
+        className={big ? 'primary' : 'sm'}
         disabled={state.busy}
         title="This handle is marked decryptable by anyone. Ask the CoFHE threshold network for its value."
         onClick={async () => {
@@ -37,8 +42,10 @@ export function DecryptButton({ chain, handle, expected }: { chain: LensChain; h
           }
         }}
       >
-        {state.busy ? 'asking the network…' : 'decrypt via network'}
+        {big && <CheckIcon size={18} />}
+        {state.busy ? 'asking the network…' : big ? 'Check it with the CoFHE network' : 'decrypt via network'}
       </button>
+      {big && !state.busy && <span className="muted small">Anyone may decrypt this value, so FHE Lens can ask the network itself and verify its signature.</span>}
       {state.error && <span style={{ color: 'var(--danger)' }}> {state.error}</span>}
     </span>
   )

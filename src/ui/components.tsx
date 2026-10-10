@@ -3,11 +3,11 @@ import type { LensChain } from '../chains'
 import { decodeHandle, toHex32 } from '../handle/decode'
 import { addressUrl, errorMessage, shortHex, txUrl } from './format'
 
-export function Copy({ text, label = 'copy' }: { text: string; label?: string }) {
+export function Copy({ text, label = 'copy', className = 'copy' }: { text: string; label?: string; className?: string }) {
   const [done, setDone] = useState(false)
   return (
     <button
-      className="link small"
+      className={className}
       title={`Copy ${text}`}
       onClick={() => {
         navigator.clipboard?.writeText(text).then(() => {

@@ -55,8 +55,8 @@ export function HandlesPage({ params }: { params: string[] }) {
       <div>
         <h1 style={{ fontSize: 22 }}>Handles</h1>
         <p className="lede">
-          A CoFHE ciphertext handle is a 256-bit id. Its last two bytes say what it is: the encrypted type, whether it was trivially encrypted from a public constant, and the security zone. Decoding happens in your browser; the chain is
-          only asked when you check access.
+          On chain, every encrypted value is represented by a handle: a 32-byte id. Its last two bytes tell what it is: the encrypted type, whether it was made from a plain number, and the security zone. Decoding happens in your browser;
+          the chain is only asked when you check who may decrypt it.
         </p>
       </div>
 

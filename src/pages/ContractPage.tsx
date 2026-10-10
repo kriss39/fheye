@@ -28,8 +28,8 @@ export function ContractPage({ params }: { params: string[] }) {
       <div>
         <h1 style={{ fontSize: 22 }}>Contract privacy report</h1>
         <p className="lede">
-          Analyses a contract's latest FHE transactions and adds up what they reveal: computed values anyone can recompute, plaintext constants, and handles anyone may decrypt. A high share of public values usually means amounts or
-          state are built from trivially encrypted constants.
+          How private is a contract, really? FHE Lens reads its latest encrypted transactions and counts how many of its "encrypted" values anyone can work out from public data, then grades it. A high share usually means amounts or
+          balances are built from plain numbers.
         </p>
       </div>
       <ReportForm key={params.join('/')} chainKey={chainKey ?? 'sepolia'} address={address ?? ''} seconds={seconds} />
@@ -116,7 +116,7 @@ function Report({ chain, address, seconds }: { chain: LensChain; address: Addres
           <h2>
             <Addr chain={chain} address={address} /> <span className="muted small">on {chain.name}</span>
           </h2>
-          <Copy text={location.href} label="copy report link" />
+          <Copy text={location.href} label="Copy report link" className="sm" />
         </div>
         <div className="score">
           <Gauge share={publicShare} tone={grade.tone} label="of computed values are public" />

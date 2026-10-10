@@ -383,8 +383,8 @@ export function StatusPage() {
       <div>
         <h1 style={{ fontSize: 22 }}>CoFHE mainnet status</h1>
         <p className="lede">
-          The CoFHE TaskManager is deployed on Ethereum and Arbitrum One. Until intake is enabled and contracts are allowlisted, no FHE task can run there. This page reads the contract directly: flags, the access list rebuilt from
-          its events and checked against storage, role holders and signer history.
+          Is CoFHE live on mainnet yet? Its TaskManager contract is deployed on Ethereum and Arbitrum One, but until intake is enabled and contracts are allowlisted, nothing can run there. This page reads the contract directly: its
+          switches, which contracts may use it (rebuilt from its events and checked against storage), and who controls it.
         </p>
       </div>
       <div className="grid2">

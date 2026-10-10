@@ -217,13 +217,15 @@ function Why({ graph, known, rowOf, handle, onSelect, onClear }: { graph: TxGrap
       </b>
       {isLeak(k) && (leaves.length ? <> · anyone can compute this from {leaves.join(', ')}</> : <> · this holds whatever the inputs are</>)}
       {!k && task.op?.kind !== 'trivial' && <> · encrypted: it depends on something FHE Lens can't see</>}
-      {task.op?.kind === 'trivial' && <> · the plaintext is in the event data</>}{' '}
-      <button className="link small" onClick={() => onSelect(row)}>
-        show in table
-      </button>{' '}
-      <button className="link small" onClick={onClear}>
-        clear
-      </button>
+      {task.op?.kind === 'trivial' && <> · the plaintext is in the event data</>}
+      <span className="why-actions">
+        <button className="sm" onClick={() => onSelect(row)}>
+          Show in table
+        </button>
+        <button className="sm" onClick={onClear}>
+          Clear selection
+        </button>
+      </span>
     </p>
   )
 }

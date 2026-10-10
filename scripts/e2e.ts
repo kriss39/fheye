@@ -35,11 +35,35 @@ try {
   )
 
   await check(
+    'home page explains and opens an example',
+    async (p) => {
+      await p.goto(`${BASE}/#/`)
+      await p.getByText("Encrypted isn't always").waitFor()
+      await p.getByRole('link', { name: /A new balance anyone can read/ }).click()
+      await p.getByText('Looks encrypted, but anyone can work it out').waitFor()
+      const verdict = await p.getByLabel('Verdict').innerText()
+      if (!verdict.includes('5,000,000') || !verdict.includes('What to do')) throw new Error('verdict lacks the sum or the advice')
+    },
+    page,
+  )
+
+  await check(
     'tx view flags the public transfer amount',
     async (p) => {
       await p.goto(`${BASE}/#/tx/sepolia/0x7d8e313f60bff6680df9d5db638f265fa1d9bbf5dee34dc4eede8cb0721753bb`)
       await p.getByText('looks encrypted but is public').waitFor()
       await p.locator('svg.opgraph').waitFor()
+    },
+    page,
+  )
+
+  await check(
+    'the verdict checks its value with the network',
+    async (p) => {
+      const verdict = p.getByLabel('Verdict')
+      await verdict.getByRole('button', { name: 'Check it with the CoFHE network' }).click()
+      await verdict.getByText('The CoFHE network says').waitFor()
+      await verdict.getByText('matches FHE Lens').waitFor()
     },
     page,
   )

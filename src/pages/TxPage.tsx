@@ -6,6 +6,7 @@ import type { Hash } from 'viem'
 import { CHAINS, type LensChain } from '../chains'
 import { lookupTrivial } from '../leak/dictionary'
 import type { Known } from '../leak/evaluate'
+import { explainTx } from '../leak/explain'
 import { ASSUMPTION_TEXT } from '../leak/ops'
 import { customRpc } from '../settings'
 import type { HandleStatus } from '../acl/check'
@@ -13,7 +14,9 @@ import { findTxChain, loadTx, type LoadedTx } from '../tx/load'
 import type { Task } from '../tx/task'
 import { useClients } from '../ui/clients'
 import { Addr, ErrorBox, HandleBadge, Pill, Stat } from '../ui/components'
+import { ExampleTiles } from '../ui/ExampleTiles'
 import { Glossary } from '../ui/Glossary'
+import { VerdictCard } from '../ui/Verdict'
 import { OpGraph } from '../ui/OpGraph'
 import { DecryptButton } from '../ui/DecryptButton'
 import { fmt, pct, txUrl } from '../ui/format'
@@ -29,10 +32,18 @@ export function TxPage({ params }: { params: string[] }) {
     <div className="stack">
       <div>
         <h1 style={{ fontSize: 22 }}>Transaction</h1>
-        <p className="lede">Every FHE task a transaction created, how the encrypted values flow between them, and which of those values anyone can compute without decrypting anything.</p>
+        <p className="lede">Paste a CoFHE transaction to see which of its encrypted values anyone can work out from public data. The operations behind the answer are listed under it.</p>
       </div>
       <TxForm key={`${chainKey}:${hash}`} initialHash={hash ?? ''} initialChain={chainKey ?? 'auto'} />
-      {!hash && <Examples />}
+      {!hash && (
+        <section>
+          <div className="section-head">
+            <h2>Or open an example</h2>
+            <p>Real testnet transactions. Three of them leak a value; one keeps everything secret.</p>
+          </div>
+          <ExampleTiles />
+        </section>
+      )}
       {!hash && <Glossary open />}
       {hash && !isTxHash(hash) && <ErrorBox error="That is not a transaction hash (0x followed by 64 hex characters)." />}
       {hash && isTxHash(hash) && !chain && <FindChain hash={hash as Hash} />}
@@ -68,29 +79,6 @@ function TxForm({ initialHash, initialChain }: { initialHash: string; initialCha
   )
 }
 
-const EXAMPLES: Array<[string, string, string]> = [
-  ['base-sepolia', '0x5fc67cd8d581d33a6ce246d253d6bf9ec07b675f1068f1716a9c81a99e9962a3', 'first mint: an encrypted zero plus a public amount gives a balance anyone can compute'],
-  ['sepolia', '0x7d8e313f60bff6680df9d5db638f265fa1d9bbf5dee34dc4eede8cb0721753bb', 'confidential transfer whose amount is a public constant'],
-  ['sepolia', '0xc870ea914edbf425386f49fbc5e879ad9e4219312c3946cce0e6e73b46054a9e', 'running totals built from trivially encrypted values'],
-  ['sepolia', '0x538d54bd2e959fee8620c7a5bbde3237ea77056b484e88ffe67837174a7874b5', 'arithmetic on two encrypted user inputs'],
-]
-
-function Examples() {
-  return (
-    <section className="card stack tight">
-      <h3>Try a testnet transaction</h3>
-      {EXAMPLES.map(([key, hash, label]) => (
-        <div key={hash} className="row small">
-          <a className="mono" href={`#/tx/${key}/${hash}`}>
-            {hash.slice(0, 14)}…
-          </a>
-          <span className="muted">{label}</span>
-        </div>
-      ))}
-    </section>
-  )
-}
-
 function FindChain({ hash }: { hash: Hash }) {
   const state = useAsync(hash, () => findTxChain(hash, customRpc))
   useEffect(() => {
@@ -119,17 +107,12 @@ function TxDetails({ t }: { t: LoadedTx }) {
   graph.tasks.forEach((task, i) => {
     if (!rowOf.has(task.ctHash)) rowOf.set(task.ctHash, i)
   })
-  const computed = graph.tasks.filter((x) => x.op?.kind !== 'trivial' && x.op?.kind !== 'random')
   // A published decrypt makes a value public on purpose; only values recomputable from public
   // leaves count as "looks encrypted but isn't".
   const isLeak = (h: bigint) => {
     const src = leaks.known.get(h)?.source
     return src === 'derived' || src === 'identity'
   }
-  const publicComputed = computed.filter((x) => isLeak(x.ctHash))
-  const trivials = graph.tasks.filter((x) => x.op?.kind === 'trivial')
-  const globalHandles = [...status].filter(([, s]) => s.global).map(([h]) => h)
-  const assumptions = [...new Set(publicComputed.flatMap((x) => leaks.known.get(x.ctHash)!.assumptions))]
   const fheShare = Number(receipt.gasUsed) > 0 ? gas.total / Number(receipt.gasUsed) : 0
 
   const jump = (i: number) => {
@@ -159,43 +142,9 @@ function TxDetails({ t }: { t: LoadedTx }) {
           <dt>to</dt>
           <dd>{tx.to ? <Addr chain={chain} address={tx.to} /> : 'contract creation'}</dd>
         </dl>
-        <div className="stats">
-          <Stat label="FHE tasks" value={fmt(graph.tasks.length)} />
-          <Stat label="longest chain" value={fmt(t.depth)} />
-          <Stat label="encrypted inputs" value={fmt(graph.inputs.size)} />
-          <Stat label="published decrypts" value={fmt(graph.decrypts.length)} />
-          <Stat label={`est. FHE gas of ${fmt(receipt.gasUsed)}`} value={graph.tasks.length || graph.inputs.size ? `~${pct(fheShare)}` : '–'} />
-        </div>
       </section>
 
-      {graph.tasks.length > 0 && (
-        <section className={publicComputed.length ? 'notice warn' : 'notice'}>
-          {publicComputed.length > 0 ? (
-            <>
-              <b>
-                {publicComputed.length} of {computed.length} computed value{computed.length === 1 ? '' : 's'} in this transaction {publicComputed.length === 1 ? 'looks encrypted but is' : 'look encrypted but are'} public.
-              </b>
-              <p>
-                {publicComputed.length === 1 ? 'It derives' : 'They derive'} only from trivially encrypted constants or published decrypt results, so anyone can recompute {publicComputed.length === 1 ? 'it' : 'them'}. Highlighted below.
-              </p>
-            </>
-          ) : (
-            <b>No computed value in this transaction can be derived from public data alone.</b>
-          )}
-          {trivials.length > 0 && (
-            <p>
-              {trivials.length} plaintext constant{trivials.length === 1 ? ' was' : 's were'} trivially encrypted; the value{trivials.length === 1 ? ' is' : 's are'} readable in the transaction's event data.
-            </p>
-          )}
-          {globalHandles.length > 0 && (
-            <p>
-              {globalHandles.length} handle{globalHandles.length === 1 ? ' is' : 's are'} marked decryptable by anyone (<code>allowGlobal</code>).
-            </p>
-          )}
-          {assumptions.length > 0 && <p className="small">Some values assume CoFHE follows TFHE-rs here: {assumptions.map((a) => ASSUMPTION_TEXT[a]).join('; ')}.</p>}
-          <p className="small muted">This shows what is provably public. It says nothing about values derived from encrypted inputs or randomness.</p>
-        </section>
-      )}
+      <VerdictCard verdict={explainTx(graph, leaks, status)} chain={chain} status={status} />
 
       {leaks.checks.some((c) => !c.match) && (
         <section className="notice danger">
@@ -210,9 +159,24 @@ function TxDetails({ t }: { t: LoadedTx }) {
         </section>
       )}
 
-      {graph.tasks.length === 0 && graph.decrypts.length === 0 && graph.inputs.size === 0 && <p className="muted">This transaction did not interact with the CoFHE TaskManager.</p>}
-
-      {graph.tasks.length > 0 && <Glossary />}
+      {graph.tasks.length > 0 && (
+        <>
+          <div className="hood">
+            <h2>Under the hood</h2>
+            <span>The encrypted operations behind this verdict</span>
+          </div>
+          <section className="card">
+            <div className="stats">
+              <Stat label="FHE operations" value={fmt(graph.tasks.length)} />
+              <Stat label="longest chain" value={fmt(t.depth)} />
+              <Stat label="encrypted inputs" value={fmt(graph.inputs.size)} />
+              <Stat label="published decrypts" value={fmt(graph.decrypts.length)} />
+              <Stat label={`est. FHE gas of ${fmt(receipt.gasUsed)}`} value={`~${pct(fheShare)}`} />
+            </div>
+          </section>
+          <Glossary />
+        </>
+      )}
 
       {graph.tasks.length > 1 && (
         <section className="card">

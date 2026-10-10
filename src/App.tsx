@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { CHAINS } from './chains'
 import { ContractPage } from './pages/ContractPage'
 import { HandlesPage } from './pages/HandlesPage'
+import { HomePage, Hero } from './pages/HomePage'
 import { StatusPage } from './pages/StatusPage'
 import { TxPage } from './pages/TxPage'
 import { customRpc, setCustomRpc, useSettingsVersion } from './settings'
+import { GraphIcon, HashIcon, PulseIcon, ReportIcon } from './ui/icons'
 
 function useRoute(): string[] {
   const parse = () => location.hash.replace(/^#\/?/, '').split('/').filter(Boolean)
@@ -18,48 +20,57 @@ function useRoute(): string[] {
 }
 
 const TABS = [
-  ['tx', 'Transaction'],
-  ['contract', 'Contract'],
-  ['handles', 'Handles'],
-  ['status', 'Mainnet'],
+  ['tx', 'Transaction', GraphIcon],
+  ['contract', 'Contract', ReportIcon],
+  ['handles', 'Handles', HashIcon],
+  ['status', 'Mainnet', PulseIcon],
 ] as const
 
 export default function App() {
-  const [page = 'tx', ...params] = useRoute()
+  const [page = 'home', ...params] = useRoute()
 
+  const known = page === 'tx' || page === 'contract' || page === 'handles' || page === 'status'
   return (
-    <div className="shell">
-      <header className="top">
-        <a className="brand" href="#/">
-          <img src={`${import.meta.env.BASE_URL}favicon.svg`} width={22} height={22} alt="" />
-          FHE Lens <small>CoFHE inspector</small>
-        </a>
-        <nav className="tabs">
-          {TABS.map(([key, label]) => (
-            <a key={key} href={`#/${key}`} aria-current={page === key ? 'page' : undefined}>
-              {label}
-            </a>
-          ))}
-        </nav>
+    <>
+      <header className="brandbar">
+        <div className="brandbar-inner">
+          <a className="brand" href="#/">
+            <img src={`${import.meta.env.BASE_URL}favicon.svg`} width={28} height={28} alt="" />
+            FHE Lens <small>CoFHE inspector</small>
+          </a>
+          <nav className="tabs">
+            {TABS.map(([key, label, Icon]) => (
+              <a key={key} href={`#/${key}`} aria-current={page === key ? 'page' : undefined}>
+                <Icon size={16} />
+                {label}
+              </a>
+            ))}
+          </nav>
+        </div>
       </header>
-      <main>
-        {page === 'status' ? (
-          <StatusPage />
-        ) : page === 'contract' ? (
-          <ContractPage params={params} />
-        ) : page === 'handles' ? (
-          <HandlesPage key={params.join('/')} params={params} />
-        ) : (
-          <TxPage params={page === 'tx' ? params : []} />
-        )}
-      </main>
-      <footer className="stack tight">
-        <Settings />
-        <span>
-          FHE Lens is unofficial and not affiliated with Fhenix. It runs entirely in your browser and only reads public chain data through the RPC endpoints below. Op semantics follow TFHE-rs, the library behind CoFHE's FHE engine.
-        </span>
-      </footer>
-    </div>
+      {!known && <Hero />}
+      <div className="shell">
+        <main>
+          {page === 'status' ? (
+            <StatusPage />
+          ) : page === 'contract' ? (
+            <ContractPage params={params} />
+          ) : page === 'handles' ? (
+            <HandlesPage key={params.join('/')} params={params} />
+          ) : page === 'tx' ? (
+            <TxPage params={params} />
+          ) : (
+            <HomePage />
+          )}
+        </main>
+        <footer className="stack tight">
+          <Settings />
+          <span>
+            FHE Lens is unofficial and not affiliated with Fhenix. It runs entirely in your browser and only reads public chain data through the RPC endpoints below. Op semantics follow TFHE-rs, the library behind CoFHE's FHE engine.
+          </span>
+        </footer>
+      </div>
+    </>
   )
 }
 

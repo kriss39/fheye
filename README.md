@@ -4,9 +4,11 @@ A client-side inspector for [Fhenix CoFHE](https://cofhe-docs.fhenix.zone), in t
 
 > Unofficial. Not affiliated with Fhenix. FHE Lens only reads public chain data; it never sends transactions or asks for a wallet.
 
+![FHE Lens: encrypted isn't always private](docs/home.png)
+
 ## What it does
 
-**Transaction view.** Give it a tx hash (the network is found automatically). It decodes every `TaskCreated`, `InputVerified` and `DecryptionResult` event the CoFHE TaskManager emitted and shows:
+**Transaction view.** Give it a tx hash (the network is found automatically). The answer comes first, in plain language: which value looks encrypted but isn't, the sum that gives it away (`0 + 5,000,000 = 5,000,000`), what a developer could do about it and, when the value may be decrypted by anyone, a button that checks it against the CoFHE network. Under that, FHE Lens decodes every `TaskCreated`, `InputVerified` and `DecryptionResult` event the CoFHE TaskManager emitted and shows:
 
 - the task graph, drawn as a layered diagram and listed in execution order, with each input linked to the task that produced it; selecting a task lights up everything it is computed from and spells out the formula;
 - each output handle's type, security zone and trivial bit;
@@ -14,7 +16,7 @@ A client-side inspector for [Fhenix CoFHE](https://cofhe-docs.fhenix.zone), in t
 - estimated gas per task (from the Fhenix docs gas table) and the FHE share of the tx's gas;
 - **values that look encrypted but are public** (see below).
 
-![Transaction view: a Sepolia transfer whose amount is computed from two plaintext constants](docs/tx.png)
+![Transaction view: the verdict for a token mint whose new balance anyone can compute](docs/tx.png)
 
 **Contract privacy report.** Give it a contract address: FHE Lens finds the contract's latest FHE transactions on a network, analyses each one and adds up how many computed values are provably public, how many plaintext constants it encrypts, and how many of its handles anyone may decrypt. Handles are content-addressed, so each value is followed back through earlier transactions in the window: a balance that started from a trivially encrypted zero is still flagged in later transactions that only add to it. The report grades the share of public values (A only when nothing is provably public) and its link can be shared.
 

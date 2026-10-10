@@ -1,49 +1,47 @@
-// Renders the link-preview image (public/og.png, 1200×630) from the HTML below: npx tsx scripts/og.ts
+// Renders the link-preview image (public/og.png, 1200×630) in the site's brand: npx tsx scripts/og.ts
 import { readFileSync } from 'node:fs'
 import { chromium } from 'playwright-core'
 
-const logo = readFileSync(new URL('../public/favicon.svg', import.meta.url), 'utf8')
+const read = (path: string) => readFileSync(new URL(path, import.meta.url))
+const logo = read('../public/favicon.svg').toString('utf8')
+const font = (path: string) => `url(data:font/woff2;base64,${read(path).toString('base64')}) format('woff2')`
+const display = font('../node_modules/@fontsource-variable/space-grotesk/files/space-grotesk-latin-wght-normal.woff2')
+const text = font('../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2')
 
-const node = (x: number, y: number, kind: 'trivial' | 'public', title: string, value: string) => `
-  <div class="node ${kind}" style="left:${x}px;top:${y}px"><b>${title}</b><span>= ${value}</span></div>`
+const lock = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg>'
+const chip = (value: string, note: string, result = false) => `<div class="chip${result ? ' result' : ''}"><b>${lock}${value}</b><span>${note}</span></div>`
 
 const html = `<!doctype html><html><head><meta charset="utf-8"><style>
+  @font-face { font-family: Display; src: ${display}; font-weight: 300 700; }
+  @font-face { font-family: Text; src: ${text}; font-weight: 100 900; }
   * { box-sizing: border-box; }
-  body { margin: 0; width: 1200px; height: 630px; background: #f7f7f9; color: #16181d;
-    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
-  .wrap { display: flex; height: 100%; padding: 72px 72px 64px; gap: 48px; align-items: center; }
-  .left { flex: 1.1; }
-  .brand { display: flex; align-items: center; gap: 22px; }
-  .brand svg { width: 104px; height: 104px; }
-  h1 { font-size: 84px; margin: 0; letter-spacing: -2px; }
-  .tag { font-size: 40px; line-height: 1.2; margin: 34px 0 22px; font-weight: 600; letter-spacing: -0.5px; }
-  .tag em { font-style: normal; color: #b45309; }
-  .sub { font-size: 24px; color: #5d6371; line-height: 1.4; }
-  .card { position: relative; flex: 1; height: 400px; background: #fff; border: 1px solid #e2e4ea; border-radius: 22px; }
-  .node { position: absolute; width: 222px; padding: 14px 18px; border-radius: 12px; font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-    display: flex; flex-direction: column; gap: 4px; background: #fff; }
-  .node b { font-size: 21px; }
-  .node span { font-size: 20px; color: #b45309; font-weight: 700; }
-  .trivial { border: 2.5px dashed #b45309; }
-  .public { border: 3px solid #b45309; background: #fdf2e2; width: 170px; }
-  .note { position: absolute; left: 0; right: 0; bottom: 30px; text-align: center; font-size: 21px; color: #5d6371; }
-  .note b { color: #b45309; }
-  svg.edges { position: absolute; inset: 0; }
+  body { margin: 0; width: 1200px; height: 630px; color: #eef0ff; font-family: Text, sans-serif; -webkit-font-smoothing: antialiased;
+    background:
+      radial-gradient(800px 380px at 88% -15%, rgb(91 75 255 / 45%), transparent 65%),
+      radial-gradient(600px 300px at -5% 115%, rgb(245 158 11 / 20%), transparent 60%),
+      linear-gradient(rgb(255 255 255 / 4%) 1px, transparent 1px) 0 0 / 40px 40px,
+      linear-gradient(90deg, rgb(255 255 255 / 4%) 1px, transparent 1px) 0 0 / 40px 40px,
+      #0c0f24; }
+  .wrap { display: flex; flex-direction: column; height: 100%; padding: 64px 72px; }
+  .brand { display: flex; align-items: center; gap: 16px; font-family: Display; font-weight: 700; font-size: 34px; letter-spacing: -0.02em; }
+  .brand svg { width: 56px; height: 56px; }
+  .brand small { font-family: Text; font-weight: 450; font-size: 20px; color: #a9aed6; letter-spacing: 0; margin-left: 4px; }
+  h1 { font-family: Display; font-size: 76px; line-height: 1.02; letter-spacing: -0.035em; margin: 44px 0 0; font-weight: 700; }
+  h1 em { font-style: normal; color: #f59e0b; }
+  .row { display: flex; align-items: center; gap: 14px; margin-top: auto; }
+  .chip { display: flex; flex-direction: column; gap: 4px; padding: 14px 18px; border-radius: 16px; border: 2.5px dashed #f59e0b; background: rgb(255 255 255 / 5%); }
+  .chip b { display: flex; align-items: center; gap: 10px; font-family: Display; font-size: 34px; font-weight: 700; }
+  .chip span { font-size: 16px; color: #a9aed6; }
+  .chip.result { border-style: solid; background: rgb(245 158 11 / 16%); box-shadow: 0 0 0 8px rgb(245 158 11 / 12%); }
+  .op { font-family: Display; font-size: 40px; color: #a9aed6; font-weight: 600; }
+  .note { margin-left: 18px; font-size: 22px; line-height: 1.35; color: #eef0ff; max-width: 300px; }
+  .note b { color: #f59e0b; }
 </style></head><body><div class="wrap">
-  <div class="left">
-    <div class="brand">${logo}<h1>FHE Lens</h1></div>
-    <div class="tag">See which encrypted values<br><em>anyone can compute.</em></div>
-    <div class="sub">Task graphs, access and leaks for CoFHE transactions and contracts. Runs in your browser. Unofficial.</div>
-  </div>
-  <div class="card">
-    <svg class="edges" width="100%" height="100%">
-      <path d="M248 98 C 266 98, 260 168, 278 168" fill="none" stroke="#b45309" stroke-width="3"/>
-      <path d="M248 252 C 266 252, 260 192, 278 192" fill="none" stroke="#b45309" stroke-width="3"/>
-    </svg>
-    ${node(26, 58, 'trivial', 'trivialEncrypt', '0')}
-    ${node(26, 212, 'trivial', 'trivialEncrypt', '10000')}
-    ${node(278, 140, 'public', 'add', '10000')}
-    <div class="note">looks encrypted, but <b>it's public</b></div>
+  <div class="brand">${logo}FHE Lens<small>CoFHE inspector · unofficial</small></div>
+  <h1>Encrypted isn't<br>always <em>private.</em></h1>
+  <div class="row">
+    ${chip('0', 'plain number')}<span class="op">+</span>${chip('5,000,000', 'plain number')}<span class="op">=</span>${chip('5,000,000', 'new balance, encrypted', true)}
+    <div class="note">Stored encrypted, but <b>anyone can compute it.</b></div>
   </div>
 </div></body></html>`
 
@@ -51,6 +49,7 @@ const browser = await chromium.launch({ channel: 'chrome' })
 try {
   const page = await browser.newPage({ viewport: { width: 1200, height: 630 } })
   await page.setContent(html)
+  await page.evaluate(() => document.fonts.ready)
   await page.screenshot({ path: new URL('../public/og.png', import.meta.url).pathname })
   console.log('saved public/og.png')
 } finally {
