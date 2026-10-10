@@ -27,5 +27,7 @@
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
     "vitest": "^4.1.11"
-  }
+  },
+  "license": "MIT",
+  "description": "Browser-only inspector for Fhenix CoFHE: FHE task graphs, handle decoding, leak detection and mainnet TaskManager status"
 }
