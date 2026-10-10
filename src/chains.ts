@@ -40,9 +40,10 @@ export const CHAINS: LensChain[] = [
     name: 'Ethereum',
     mainnet: true,
     rpc: 'https://ethereum-rpc.publicnode.com',
-    // publicnode only serves recent logs without a token; these keep full history at 10k spans
-    logRpcs: ['https://eth.drpc.org', 'https://rpc.mevblocker.io'],
-    maxLogRange: 10_000n,
+    // publicnode only serves recent logs without a token; these keep full history at 50k spans.
+    // (drpc's free plan dropped to ~100-block ranges in Oct 2026, so it's no longer listed.)
+    logRpcs: ['https://mainnet.gateway.tenderly.co', 'https://rpc.mevblocker.io'],
+    maxLogRange: 50_000n,
     explorer: 'https://etherscan.io',
     taskManager: MAINNET_TM,
     deployBlock: 26_120_645n,
